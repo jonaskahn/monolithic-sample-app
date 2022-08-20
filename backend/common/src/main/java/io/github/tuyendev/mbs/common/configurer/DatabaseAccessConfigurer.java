@@ -15,6 +15,7 @@ import org.springframework.data.jdbc.repository.config.EnableJdbcAuditing;
 import org.springframework.data.jdbc.repository.config.EnableJdbcRepositories;
 import org.springframework.data.mongodb.config.EnableMongoAuditing;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
+import org.springframework.data.relational.core.mapping.event.AfterConvertEvent;
 import org.springframework.data.relational.core.mapping.event.AfterSaveEvent;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
@@ -33,7 +34,7 @@ class DatabaseAccessConfigurer {
 	}
 
 	@Bean
-	ApplicationListener<AfterSaveEvent<Object>> beforeSaveEntity() {
+	ApplicationListener<AfterSaveEvent<Object>> beforeSaveManualPersistable() {
 		return event -> {
 			Object e = event.getEntity();
 			if (e instanceof ManualPersistable) {
@@ -41,6 +42,17 @@ class DatabaseAccessConfigurer {
 			}
 		};
 	}
+
+	@Bean
+	ApplicationListener<AfterConvertEvent<Object>> afterLoadManualPersistable() {
+		return event -> {
+			Object e = event.getEntity();
+			if (e instanceof ManualPersistable) {
+				((ManualPersistable<?>) e).setNewEntity(Boolean.FALSE);
+			}
+		};
+	}
+
 
 	static class DomainAuditorAware implements AuditorAware<Long> {
 		@Override

@@ -1,5 +1,7 @@
 package io.github.tuyendev.mbs.common;
 
+import java.util.List;
+
 public abstract class CommonConstants {
 	public static abstract class EntityName {
 		public static final String ROLE = "roles";
@@ -44,5 +46,27 @@ public abstract class CommonConstants {
 		public static final String ACCESS_TOKEN = "ACCTN";
 
 		public static final String REFRESH_TOKEN = "REFTN";
+	}
+
+	public static abstract class Role {
+		public static final String DEFAULT_ROLE_MEMBER = "MEMBER";
+
+		public static final String DEFAULT_ROLE_ADMIN = "ADMIN";
+	}
+
+	public static abstract class Privilege {
+
+		public static final String READ_PREFIX = "READ_";
+
+		public static final String WRITE_PREFIX = "WRITE_";
+
+		public static final String UPDATE_PREFIX = "UPDATE_";
+
+		public static final String DELETE_PREFIX = "READ_";
+
+		public static final List<String> basisPrivileges = List.of("READ_BASIC", "WRITE_BASIC", "UPDATE_BASIC", "DELETE_BASIC");
+
+		public static final List<String> adminPrivileges = List.of("READ_PRIVILEGE", "WRITE_PRIVILEGE", "UPDATE_PRIVILEGE", "DELETE_PRIVILEGE");
+
 	}
 }

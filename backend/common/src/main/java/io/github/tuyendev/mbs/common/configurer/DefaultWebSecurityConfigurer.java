@@ -1,12 +1,14 @@
 package io.github.tuyendev.mbs.common.configurer;
 
 
+import io.github.tuyendev.mbs.common.CommonConstants;
 import io.github.tuyendev.mbs.common.security.jwt.JwtSecurityAdapter;
 import io.github.tuyendev.mbs.common.security.jwt.JwtTokenProvider;
 import org.zalando.problem.spring.web.advice.security.SecurityProblemSupport;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -51,6 +53,11 @@ class DefaultWebSecurityConfigurer {
 				.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
 				.and()
 				.authorizeRequests()
+				.antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+				.antMatchers("/webjars/**", "/error/**").permitAll()
+				.antMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+				.antMatchers("/auth/token", "/auth/refresh_token", "/auth/forgot-password", "/auth/forgot-password-complete").permitAll()
+				.antMatchers("/actuator/**").hasRole(CommonConstants.Role.DEFAULT_ROLE_ADMIN)
 				.anyRequest().permitAll()
 				.and()
 				.formLogin().disable()

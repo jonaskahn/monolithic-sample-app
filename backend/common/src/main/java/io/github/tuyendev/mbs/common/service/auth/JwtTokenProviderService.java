@@ -1,6 +1,7 @@
 package io.github.tuyendev.mbs.common.service.auth;
 
 import java.security.Key;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.Objects;
 import java.util.UUID;
@@ -89,25 +90,15 @@ public class JwtTokenProviderService implements JwtTokenProvider {
 				.orElseThrow(() -> new RuntimeException("This should never happen since the authentication is completed before."));
 		final Date issuedAt = new Date();
 		final Date accessTokenExpiration = new Date(issuedAt.getTime() + accessTokenExpirationInSeconds * 1000);
-
 		AccessToken accessToken = createAccessToken(currentUser, accessTokenExpiration, issuedAt);
+		String refreshJwtToken = null;
 		if (rememberMe) {
 			RefreshToken refreshToken = createRefreshToken(accessToken.getId(), accessTokenExpiration, issuedAt);
+			refreshJwtToken = refreshToken.getToken();
 			accessToken.setRefreshToken(refreshToken);
-			accessTokenRepo.save(accessToken);
-			return JwtAccessToken.builder()
-					.type("Bearer")
-					.accessToken(accessToken.getToken())
-					.refreshToken(refreshToken.getToken())
-					.expiration(DateUtils.localDateTimeToDate(accessToken.getExpiredAt()).getTime())
-					.build();
 		}
 		accessTokenRepo.save(accessToken);
-		return JwtAccessToken.builder()
-				.type("Bearer")
-				.accessToken(accessToken.getToken())
-				.expiration(DateUtils.localDateTimeToDate(accessToken.getExpiredAt()).getTime())
-				.build();
+		return createJwtAccessToken(accessToken.getToken(), refreshJwtToken, accessToken.getExpiredAt());
 	}
 
 	private AccessToken createAccessToken(final User user, Date expiration, Date issuedAt) {
@@ -130,7 +121,6 @@ public class JwtTokenProviderService implements JwtTokenProvider {
 				.build();
 	}
 
-
 	private RefreshToken createRefreshToken(final String accessTokenId, Date notBefore, Date issuedAt) {
 		Date expiration = new Date(issuedAt.getTime() + refreshTokenExpirationInSeconds * 1000);
 		final String id = UUID.randomUUID().toString();
@@ -151,6 +141,15 @@ public class JwtTokenProviderService implements JwtTokenProvider {
 				.build();
 	}
 
+	private JwtAccessToken createJwtAccessToken(final String accessToken, final String refreshToken, final LocalDateTime expiredAt) {
+		return JwtAccessToken.builder()
+				.type("Bearer")
+				.accessToken(accessToken)
+				.refreshToken(refreshToken)
+				.expiration(DateUtils.localDateTimeToDate(expiredAt).getTime())
+				.build();
+	}
+
 
 	@Override
 	public JwtAccessToken refreshToken(String jwtToken) {
@@ -166,7 +165,7 @@ public class JwtTokenProviderService implements JwtTokenProvider {
 		accessToken.setStatus(CommonConstants.EntityStatus.DELETED);
 		accessToken.getRefreshToken().setStatus(CommonConstants.EntityStatus.DELETED);
 		accessTokenRepo.save(accessToken);
-		setAuthenticationByRefreshToken(accessToken, jwtToken);
+		setAuthenticationByRefreshToken(accessToken.getUserId(), jwtToken);
 		return createToken(true);
 	}
 
@@ -181,12 +180,12 @@ public class JwtTokenProviderService implements JwtTokenProvider {
 		}
 	}
 
-	private void setAuthenticationByRefreshToken(AccessToken accessToken, String jwtToken) {
-		setAuthenticationAfterSuccess(accessToken, jwtToken);
+	private void setAuthenticationByRefreshToken(Long userId, String jwtToken) {
+		setAuthenticationAfterSuccess(userId, jwtToken);
 	}
 
-	private void setAuthenticationAfterSuccess(AccessToken accessToken, String jwtToken) {
-		User user = userRepo.findActiveUserById(accessToken.getUserId())
+	private void setAuthenticationAfterSuccess(Long userId, String jwtToken) {
+		User user = userRepo.findActiveUserById(userId)
 				.orElseThrow(() -> new UsernameNotFoundException("TODO-KEY"));
 		UserDetails userDetails = buildPrincipalForRefreshTokenFromUser(user, jwtToken);
 		Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
@@ -207,13 +206,13 @@ public class JwtTokenProviderService implements JwtTokenProvider {
 		}
 		AccessToken accessToken = accessTokenRepo.findActiveAccessTokenById(claims.getId()).
 				orElseThrow(RevokedJwtTokenException::new);
-		setAuthenticationByAccessToken(accessToken, Long.valueOf(claims.getSubject()), jwtToken);
+		setAuthenticationByAccessToken(accessToken.getUserId(), Long.valueOf(claims.getSubject()), jwtToken);
 	}
 
-	private void setAuthenticationByAccessToken(AccessToken accessToken, Long userId, String jwtToken) {
-		if (!Objects.equals(userId, accessToken.getUserId())) {
+	private void setAuthenticationByAccessToken(Long userId, Long subjectUserId, String jwtToken) {
+		if (!Objects.equals(subjectUserId, userId)) {
 			throw new InvalidJwtTokenException();
 		}
-		setAuthenticationAfterSuccess(accessToken, jwtToken);
+		setAuthenticationAfterSuccess(userId, jwtToken);
 	}
 }
