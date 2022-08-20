@@ -25,7 +25,7 @@ public class AuthorizationHandler {
 		return Response.ok(token);
 	}
 
-	@PostRequest(name = "Refresh token entry point", desc = "Refresh the old accessToken, generate token if success", path = "/refresh_token")
+	@PostRequest(name = "Refresh token entry point", desc = "Refresh the old accessToken, generate token if success", path = "/refresh-token")
 	public Response<JwtAccessToken> reauthorize(@Valid @RequestBody RefreshTokenRequestDto request) {
 		JwtAccessToken token = tokenProvider.refreshToken(request.getRefreshToken());
 		return Response.ok(token);

@@ -11,13 +11,10 @@ import java.util.stream.Collectors;
 import io.github.tuyendev.mbs.common.CommonConstants;
 import io.github.tuyendev.mbs.common.entity.rdb.Authority;
 import io.github.tuyendev.mbs.common.entity.rdb.Role;
-import io.github.tuyendev.mbs.common.repository.rdb.AuthorityRepository;
 import io.github.tuyendev.mbs.common.repository.rdb.RoleRepository;
 import lombok.RequiredArgsConstructor;
 import one.util.streamex.StreamEx;
 
-import org.springframework.context.event.ApplicationContextEvent;
-import org.springframework.context.event.EventListener;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.stereotype.Service;
@@ -30,12 +27,9 @@ public class RoleHierarchyServiceImpl implements RoleHierarchyService {
 
 	private final RoleRepository roleRepo;
 
-	private final AuthorityRepository authorityRepo;
-
 	private final Object lock = new Object();
 
 	@Override
-	@EventListener(ApplicationContextEvent.class)
 	public void reload() {
 		synchronized (lock) {
 			List<String> roleHierarchies = this.roleRepo.findAllActive().stream()

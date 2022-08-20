@@ -60,7 +60,7 @@ public class UserServiceImpl implements UserService, SecurityUserInfoProvider {
 		return user;
 	}
 
-	private User findActiveUserById(Long userId) {
+	public User findActiveUserById(Long userId) {
 		User user = userRepo.findActiveUserById(userId)
 				.orElseThrow(() -> new UsernameNotFoundException(eval("app.user.exception.not-found")));
 		fulfillUserInfo(user);

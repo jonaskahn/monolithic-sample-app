@@ -62,11 +62,27 @@ public abstract class CommonConstants {
 
 		public static final String UPDATE_PREFIX = "UPDATE_";
 
-		public static final String DELETE_PREFIX = "READ_";
+		public static final String DELETE_PREFIX = "DELETE_";
 
-		public static final List<String> basisPrivileges = List.of("READ_BASIC", "WRITE_BASIC", "UPDATE_BASIC", "DELETE_BASIC");
+		public static final String READ_BASIC = "READ_BASIC";
 
-		public static final List<String> adminPrivileges = List.of("READ_PRIVILEGE", "WRITE_PRIVILEGE", "UPDATE_PRIVILEGE", "DELETE_PRIVILEGE");
+		public static final String WRITE_BASIC = "WRITE_BASIC";
+
+		public static final String UPDATE_BASIC = "UPDATE_BASIC";
+
+		public static final String DELETE_BASIC = "DELETE_BASIC";
+
+		public static final String READ_PRIVILEGE = "READ_PRIVILEGE";
+
+		public static final String WRITE_PRIVILEGE = "WRITE_PRIVILEGE";
+
+		public static final String UPDATE_PRIVILEGE = "UPDATE_PRIVILEGE";
+
+		public static final String DELETE_PRIVILEGE = "DELETE_PRIVILEGE";
+
+		public static final List<String> basisPrivileges = List.of(READ_BASIC, WRITE_BASIC, UPDATE_BASIC, DELETE_BASIC);
+
+		public static final List<String> adminPrivileges = List.of(READ_PRIVILEGE, WRITE_PRIVILEGE, UPDATE_PRIVILEGE, DELETE_PRIVILEGE);
 
 	}
 }

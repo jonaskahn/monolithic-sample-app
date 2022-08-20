@@ -253,6 +253,15 @@ public class User extends AbstractJdbcEntity<Long> {
 			return this;
 		}
 
+		public UserBuilder role(final Set<Role> roles) {
+			final Set<UserRoleRef> roleRefs = StreamEx.of(roles)
+					.map(Role::getId)
+					.map(UserRoleRef::new)
+					.toImmutableSet();
+			this.roleRefs = Objects.requireNonNullElse(roleRefs, new HashSet<>());
+			return this;
+		}
+
 		public UserBuilder groupRefs(final Set<UserGroupRef> groupRefs) {
 			this.groupRefs = Objects.requireNonNullElse(groupRefs, new HashSet<>());
 			return this;

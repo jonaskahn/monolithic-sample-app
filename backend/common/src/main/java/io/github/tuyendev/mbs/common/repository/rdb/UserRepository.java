@@ -17,7 +17,6 @@ public interface UserRepository extends CrudRepository<User, Long> {
 
 	default Optional<User> findActiveUserById(final Long id) {
 		return findUserByIdAndStatus(id, CommonConstants.EntityStatus.ACTIVE);
-
 	}
 
 	boolean existsUserByUsernameAndStatus(final String username, final Integer status);

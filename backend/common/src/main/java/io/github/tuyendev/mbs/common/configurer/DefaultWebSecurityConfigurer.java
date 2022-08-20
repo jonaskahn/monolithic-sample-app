@@ -9,11 +9,13 @@ import org.zalando.problem.spring.web.advice.security.SecurityProblemSupport;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -27,43 +29,52 @@ class DefaultWebSecurityConfigurer {
 
 	private final JwtTokenProvider tokenProvider;
 
-	public DefaultWebSecurityConfigurer(SecurityProblemSupport problemSupport, JwtTokenProvider tokenProvider) {
+	private final RoleHierarchy roleHierarchy;
+
+	public DefaultWebSecurityConfigurer(SecurityProblemSupport problemSupport, JwtTokenProvider tokenProvider, RoleHierarchy roleHierarchy) {
 		this.problemSupport = problemSupport;
 		this.tokenProvider = tokenProvider;
+		this.roleHierarchy = roleHierarchy;
 	}
 
+	@Bean
+	public DefaultWebSecurityExpressionHandler webSecurityExpressionHandler() {
+		DefaultWebSecurityExpressionHandler expressionHandler = new DefaultWebSecurityExpressionHandler();
+		expressionHandler.setRoleHierarchy(roleHierarchy);
+		return expressionHandler;
+	}
 	@Bean
 	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 		// @formatter:off
 		http.cors()
 				.and().csrf().disable()
-				.exceptionHandling()
-				.authenticationEntryPoint(problemSupport)
-				.accessDeniedHandler(problemSupport)
+					.exceptionHandling()
+					.authenticationEntryPoint(problemSupport)
+					.accessDeniedHandler(problemSupport)
 				.and()
-				.headers()
-				.referrerPolicy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN)
+					.headers()
+					.referrerPolicy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN)
+						.and()
+							.permissionsPolicy().policy("camera=(), fullscreen=(self), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), midi=(), payment=(), sync-xhr=()")
 				.and()
-				.permissionsPolicy().policy("camera=(), fullscreen=(self), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), midi=(), payment=(), sync-xhr=()")
+					.frameOptions()
+					.sameOrigin()
 				.and()
-				.frameOptions()
-				.sameOrigin()
+					.sessionManagement()
+					.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
 				.and()
-				.sessionManagement()
-				.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+					.authorizeRequests().expressionHandler(webSecurityExpressionHandler())
+						.antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+						.antMatchers("/webjars/**", "/error/**").permitAll()
+						.antMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+						.antMatchers("/auth/token", "/auth/refresh_token", "/auth/forgot-password", "/auth/forgot-password-complete").permitAll()
+						.antMatchers("/actuator/**").hasAuthority(CommonConstants.Privilege.READ_PRIVILEGE)
+						.anyRequest().authenticated()
 				.and()
-				.authorizeRequests()
-				.antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-				.antMatchers("/webjars/**", "/error/**").permitAll()
-				.antMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-				.antMatchers("/auth/token", "/auth/refresh_token", "/auth/forgot-password", "/auth/forgot-password-complete").permitAll()
-				.antMatchers("/actuator/**").hasRole(CommonConstants.Role.DEFAULT_ROLE_ADMIN)
-				.anyRequest().permitAll()
-				.and()
-				.formLogin().disable()
-				.logout().disable()
-				.httpBasic().disable()
-				.apply(securityConfigurerAdapter());
+					.formLogin().disable()
+					.logout().disable()
+					.httpBasic().disable()
+					.apply(securityConfigurerAdapter());
 		return http.build();
 		// @formatter:on
 	}

@@ -12,10 +12,19 @@ import org.springframework.data.repository.CrudRepository;
 
 public interface RoleRepository extends CrudRepository<Role, Long> {
 
+
+	boolean existsByName(final String name);
+
 	Optional<Role> findRoleByIdAndStatus(Long id, Integer status);
 
 	default Optional<Role> findActiveRoleById(Long id) {
 		return findRoleByIdAndStatus(id, CommonConstants.EntityStatus.ACTIVE);
+	}
+
+	Optional<Role> findRoleByNameAndStatus(String name, Integer status);
+
+	default Optional<Role> findActiveRoleByName(String name) {
+		return findRoleByNameAndStatus(name, CommonConstants.EntityStatus.ACTIVE);
 	}
 
 	Set<Role> findAllByIdInAndStatus(Collection<Long> id, Integer status);

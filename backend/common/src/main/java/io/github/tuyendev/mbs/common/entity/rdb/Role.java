@@ -50,6 +50,10 @@ public class Role extends AbstractJdbcEntity<Long> {
 		this.authorities = authorities;
 	}
 
+	public static RoleBuilder builder() {
+		return new RoleBuilder();
+	}
+
 	public Set<Long> userIds() {
 		return StreamEx.of(userRefs).map(RoleUserRef::getUserId).toImmutableSet();
 	}

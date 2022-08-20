@@ -12,10 +12,10 @@ import io.github.tuyendev.mbs.common.entity.rdb.RefreshToken;
 import io.github.tuyendev.mbs.common.entity.rdb.User;
 import io.github.tuyendev.mbs.common.repository.rdb.AccessTokenRepository;
 import io.github.tuyendev.mbs.common.repository.rdb.RefreshTokenRepository;
-import io.github.tuyendev.mbs.common.repository.rdb.UserRepository;
 import io.github.tuyendev.mbs.common.security.DomainUserDetails;
 import io.github.tuyendev.mbs.common.security.jwt.JwtAccessToken;
 import io.github.tuyendev.mbs.common.security.jwt.JwtTokenProvider;
+import io.github.tuyendev.mbs.common.service.user.UserService;
 import io.github.tuyendev.mbs.common.utils.AppContextUtils;
 import io.github.tuyendev.mbs.common.utils.DateUtils;
 import io.jsonwebtoken.Claims;
@@ -37,7 +37,6 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,7 +51,7 @@ public class JwtTokenProviderService implements JwtTokenProvider {
 
 	private final AuthenticationManagerBuilder authenticationManagerBuilder;
 
-	private final UserRepository userRepo;
+	private final UserService userService;
 
 	private final AccessTokenRepository accessTokenRepo;
 
@@ -65,13 +64,13 @@ public class JwtTokenProviderService implements JwtTokenProvider {
 	private long refreshTokenExpirationInSeconds;
 
 	public JwtTokenProviderService(@Value("${app.common.jwt.secret-key}") String jwtSecretKey,
-			AuthenticationManagerBuilder authenticationManagerBuilder, UserRepository userRepo,
+			AuthenticationManagerBuilder authenticationManagerBuilder, UserService userService,
 			AccessTokenRepository accessTokenRepo, RefreshTokenRepository refreshTokenRepo) {
+		this.userService = userService;
 		byte[] keyBytes = Decoders.BASE64.decode(jwtSecretKey);
 		this.secretKey = Keys.hmacShaKeyFor(keyBytes);
 		this.jwtParser = Jwts.parserBuilder().setSigningKey(secretKey).build();
 		this.authenticationManagerBuilder = authenticationManagerBuilder;
-		this.userRepo = userRepo;
 		this.accessTokenRepo = accessTokenRepo;
 		this.refreshTokenRepo = refreshTokenRepo;
 	}
@@ -185,8 +184,7 @@ public class JwtTokenProviderService implements JwtTokenProvider {
 	}
 
 	private void setAuthenticationAfterSuccess(Long userId, String jwtToken) {
-		User user = userRepo.findActiveUserById(userId)
-				.orElseThrow(() -> new UsernameNotFoundException("TODO-KEY"));
+		User user = userService.findActiveUserById(userId);
 		UserDetails userDetails = buildPrincipalForRefreshTokenFromUser(user, jwtToken);
 		Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 		SecurityContextHolder.getContext().setAuthentication(authentication);
