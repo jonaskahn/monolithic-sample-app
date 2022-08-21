@@ -14,7 +14,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.GenericFilterBean;
 
 @Slf4j
-public class DefaultJwtFilter extends GenericFilterBean {
+public class JwtRequestFilter extends GenericFilterBean {
 
 	private static final String AUTHORIZATION_HEADER = "Authorization";
 
@@ -22,7 +22,7 @@ public class DefaultJwtFilter extends GenericFilterBean {
 
 	private final JwtTokenProvider tokenProvider;
 
-	public DefaultJwtFilter(JwtTokenProvider tokenProvider) {
+	public JwtRequestFilter(JwtTokenProvider tokenProvider) {
 		this.tokenProvider = tokenProvider;
 	}
 

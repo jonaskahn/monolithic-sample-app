@@ -43,6 +43,7 @@ class DefaultWebSecurityConfigurer {
 		expressionHandler.setRoleHierarchy(roleHierarchy);
 		return expressionHandler;
 	}
+
 	@Bean
 	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 		// @formatter:off
@@ -67,7 +68,7 @@ class DefaultWebSecurityConfigurer {
 						.antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 						.antMatchers("/webjars/**", "/error/**").permitAll()
 						.antMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-						.antMatchers("/auth/token", "/auth/refresh_token", "/auth/forgot-password", "/auth/forgot-password-complete").permitAll()
+						.antMatchers("/auth/token", "/auth/refresh-token", "/auth/forgot-password", "/auth/forgot-password-complete").permitAll()
 						.antMatchers("/actuator/**").hasAuthority(CommonConstants.Privilege.READ_PRIVILEGE)
 						.anyRequest().authenticated()
 				.and()

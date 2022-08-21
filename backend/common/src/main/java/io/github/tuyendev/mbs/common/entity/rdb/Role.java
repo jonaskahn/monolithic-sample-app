@@ -7,7 +7,6 @@ import java.util.Set;
 import io.github.tuyendev.mbs.common.CommonConstants.EntityName;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 import one.util.streamex.StreamEx;
 
 import org.springframework.data.annotation.Transient;
@@ -16,7 +15,6 @@ import org.springframework.data.relational.core.mapping.Table;
 
 @Getter
 @Setter
-@ToString
 @Table(value = EntityName.ROLE)
 public class Role extends AbstractJdbcEntity<Long> {
 
@@ -52,6 +50,18 @@ public class Role extends AbstractJdbcEntity<Long> {
 
 	public static RoleBuilder builder() {
 		return new RoleBuilder();
+	}
+
+	@Override
+	public String toString() {
+		return "Role{" +
+				"parentId=" + parentId +
+				", name='" + name + '\'' +
+				", description='" + description + '\'' +
+				", status=" + status +
+				", userRefs=" + userRefs +
+				", authorities=" + authorities +
+				'}';
 	}
 
 	public Set<Long> userIds() {
