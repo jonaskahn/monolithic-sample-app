@@ -2,6 +2,7 @@ package io.github.tuyendev.mbs.common.utils;
 
 import java.util.Optional;
 
+import io.github.tuyendev.mbs.common.CommonConstants;
 import io.github.tuyendev.mbs.common.entity.rdb.User;
 import io.github.tuyendev.mbs.common.security.DomainUserDetails;
 
@@ -35,8 +36,7 @@ public class AppContextUtils {
 	}
 
 	public static Optional<Long> getCurrentLoginUserId() {
-		return getCurrentLoginUser()
-				.map(User::getId);
+		return Optional.of(getCurrentLoginUser().map(User::getId).orElse(CommonConstants.User.SYSTEM_ID));
 	}
 
 }
