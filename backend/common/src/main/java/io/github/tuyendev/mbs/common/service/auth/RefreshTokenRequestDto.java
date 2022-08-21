@@ -15,6 +15,6 @@ import lombok.NoArgsConstructor;
 @Builder
 public class RefreshTokenRequestDto implements Serializable {
 
-	@NotNull(message = "{TODO-ADD-MESSAGE}")
+	@NotNull(message = "{app.auth.validation.required-refresh-token}")
 	private String refreshToken;
 }

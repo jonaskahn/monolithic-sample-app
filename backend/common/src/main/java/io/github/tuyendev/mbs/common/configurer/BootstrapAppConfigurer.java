@@ -27,7 +27,6 @@ import static io.github.tuyendev.mbs.common.CommonConstants.Role.DEFAULT_ROLE_ME
 @Configuration
 class BootstrapAppConfigurer {
 
-	//TODO configurable
 	private static final String DEFAULT_ADMIN_USERNAME = "root";
 
 	private static final String DEFAULT_ADMIN_EMAIL = "admin@localhost";

@@ -15,10 +15,10 @@ import lombok.NoArgsConstructor;
 @Builder
 public class AuthorizationRequestDto implements Serializable {
 
-	@NotNull(message = "{TODO-ADD-MESSAGE}")
+	@NotNull(message = "{app.auth.validation.required-username}")
 	private String username;
 
-	@NotNull(message = "{TODO-ADD-MESSAGE}")
+	@NotNull(message = "{app.auth.validation.required-password}")
 	private String password;
 
 	private boolean rememberMe;
