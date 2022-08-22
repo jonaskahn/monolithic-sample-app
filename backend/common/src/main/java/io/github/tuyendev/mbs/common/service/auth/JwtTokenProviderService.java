@@ -57,6 +57,9 @@ public class JwtTokenProviderService implements JwtTokenProvider {
 
 	private final RefreshTokenRepository refreshTokenRepo;
 
+	@Value("${app.common.jwt.issuer}")
+	private String issuer;
+
 	@Value("${app.common.jwt.access-token-expiration}")
 	private long accessTokenExpirationInSeconds;
 
@@ -103,6 +106,7 @@ public class JwtTokenProviderService implements JwtTokenProvider {
 	private AccessToken createAccessToken(final User user, Date expiration, Date issuedAt) {
 		final String id = UUID.randomUUID().toString();
 		final String token = Jwts.builder()
+				.setIssuer(issuer)
 				.setId(id)
 				.setAudience(CommonConstants.TokenAudience.ACCESS_TOKEN)
 				.setSubject(user.getPreferredUsername())
@@ -125,6 +129,7 @@ public class JwtTokenProviderService implements JwtTokenProvider {
 		Date expiration = new Date(issuedAt.getTime() + refreshTokenExpirationInSeconds * 1000);
 		final String id = UUID.randomUUID().toString();
 		final String token = Jwts.builder()
+				.setIssuer(issuer)
 				.setId(id)
 				.setAudience(CommonConstants.TokenAudience.REFRESH_TOKEN)
 				.setSubject(accessTokenId)
