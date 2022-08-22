@@ -35,8 +35,8 @@ public class AppContextUtils {
 				.map(DomainUserDetails::getUser);
 	}
 
-	public static Optional<Long> getCurrentLoginUserId() {
-		return Optional.of(getCurrentLoginUser().map(User::getId).orElse(CommonConstants.User.SYSTEM_ID));
+	public static Long getCurrentLoginUserId() {
+		return getCurrentLoginUser().map(User::getId).orElse(CommonConstants.User.SYSTEM_ID);
 	}
 
 }

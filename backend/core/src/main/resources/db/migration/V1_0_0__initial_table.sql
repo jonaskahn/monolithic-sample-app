@@ -69,10 +69,6 @@ CREATE TABLE IF NOT EXISTS role_authorities
 (
     role_id      bigint not null,
     authority_id bigint not null,
-    created_by   VARCHAR(255) NULL,
-    created_date DATETIME(6) NULL,
-    last_modified_by VARCHAR(255) NULL,
-    last_modified_date DATETIME(6) NULL,
     constraint role_authorities_pk
         unique (role_id, authority_id),
     constraint role_authorities_authorities_id_fk

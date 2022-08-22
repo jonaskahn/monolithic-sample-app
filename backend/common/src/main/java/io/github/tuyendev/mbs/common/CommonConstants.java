@@ -26,8 +26,9 @@ public abstract class CommonConstants {
 	}
 
 
-	public static abstract class  User {
+	public static abstract class User {
 		public static final Long SYSTEM_ID = 0L;
+
 		public static final Long ANONYMOUS_ID = -1L;
 	}
 

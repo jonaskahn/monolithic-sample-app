@@ -138,6 +138,15 @@ public class Role extends AbstractJdbcEntity<Long> {
 			return this;
 		}
 
+		public RoleBuilder authorities(final Set<Authority> authorities) {
+			this.authorityRef = StreamEx.of(authorities)
+					.filter(Objects::nonNull)
+					.map(Authority::getId)
+					.map(RoleAuthorityRef::new)
+					.toImmutableSet();
+			return this;
+		}
+
 		public Role build() {
 			return new Role(this.id, this.parentId, this.name, this.description, this.status, this.userRefs, this.authorityRef);
 		}

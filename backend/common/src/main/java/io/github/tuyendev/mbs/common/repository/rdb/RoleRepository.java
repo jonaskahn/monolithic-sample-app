@@ -1,7 +1,6 @@
 package io.github.tuyendev.mbs.common.repository.rdb;
 
 import java.util.Collection;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
@@ -12,6 +11,13 @@ import org.springframework.data.repository.CrudRepository;
 
 public interface RoleRepository extends CrudRepository<Role, Long> {
 
+	default Role create(Role role) {
+		Long parentId = findActiveRoleByName(CommonConstants.Role.DEFAULT_ROLE_ADMIN)
+				.map(Role::getId)
+				.orElse(null);
+		role.setParentId(parentId);
+		return save(role);
+	}
 
 	boolean existsByName(final String name);
 

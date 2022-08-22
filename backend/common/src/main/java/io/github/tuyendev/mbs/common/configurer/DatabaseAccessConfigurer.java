@@ -63,7 +63,7 @@ class DatabaseAccessConfigurer {
 			if (authentication.isPresent() && Objects.equals("anonymousUser", authentication.get().getPrincipal())) {
 				return Optional.of(CommonConstants.User.ANONYMOUS_ID);
 			}
-			return AppContextUtils.getCurrentLoginUserId();
+			return Optional.of(AppContextUtils.getCurrentLoginUserId());
 		}
 	}
 

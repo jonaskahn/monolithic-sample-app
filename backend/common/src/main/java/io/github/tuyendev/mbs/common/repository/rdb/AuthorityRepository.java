@@ -15,4 +15,10 @@ public interface AuthorityRepository extends CrudRepository<Authority, Long> {
 	default Set<Authority> findAllActiveByIdIn(final Collection<Long> ids) {
 		return findAllByIdInAndStatus(ids, CommonConstants.EntityStatus.ACTIVE);
 	}
+
+	Set<Authority> findAllByStatus(final Integer status);
+
+	default Set<Authority> findAllActive() {
+		return findAllByStatus(CommonConstants.EntityStatus.ACTIVE);
+	}
 }

@@ -72,7 +72,7 @@ class BootstrapAppConfigurer {
 	}
 
 	private void createFeatureAndRoleIfNotExist(String name, List<String> rolePrivileges) {
-		if(!featureRepo.existsByName(name)){
+		if (!featureRepo.existsByName(name)) {
 			Set<Authority> authorities = StreamEx.of(rolePrivileges)
 					.map(privilege -> Authority.builder()
 							.name(privilege)
@@ -86,9 +86,19 @@ class BootstrapAppConfigurer {
 					.description(name)
 					.type(CommonConstants.FeatureType.SYSTEM)
 					.build();
-			featureRepo.save(feature);
+			featureRepo.saveOrUpdate(feature);
 		}
-
+		if (!roleRepo.existsByName(name)) {
+			Feature feature = featureRepo.findFeatureByName(name)
+					.orElseThrow(() -> new RuntimeException("This should never happen"));
+			Role role = Role.builder()
+					.name(name)
+					.description(name)
+					.authorities(feature.getAuthorities())
+					.status(CommonConstants.EntityStatus.ACTIVE)
+					.build();
+			roleRepo.create(role);
+		}
 	}
 
 	private void createMemberFeatureAndRoleIfNotExist() {
@@ -97,18 +107,17 @@ class BootstrapAppConfigurer {
 
 	private void createAdminUserIfNotExist() {
 		if (userRepo.existsActiveUserByUsername(this.adminUsername)) {
-			return;
 		}
-//		Role adminRole = roleRepo.findActiveRoleByName(DEFAULT_ROLE_ADMIN)
-//				.orElseThrow(() -> new RuntimeException("This should never happen"));
-//		User user = User.builder()
-//				.email(this.adminEmail)
-//				.emailVerified(CommonConstants.EntityStatus.VERIFIED)
-//				.username(this.adminUsername)
-//				.password(passwordEncoder.encode(this.adminPassword))
-//				.role(Set.of(adminRole))
-//				.status(CommonConstants.EntityStatus.ACTIVE)
-//				.build();
-//		userRepo.save(user);
+		Role adminRole = roleRepo.findActiveRoleByName(DEFAULT_ROLE_ADMIN)
+				.orElseThrow(() -> new RuntimeException("This should never happen"));
+		User user = User.builder()
+				.email(this.adminEmail)
+				.emailVerified(CommonConstants.EntityStatus.VERIFIED)
+				.username(this.adminUsername)
+				.password(passwordEncoder.encode(this.adminPassword))
+				.role(Set.of(adminRole))
+				.status(CommonConstants.EntityStatus.ACTIVE)
+				.build();
+		userRepo.save(user);
 	}
 }

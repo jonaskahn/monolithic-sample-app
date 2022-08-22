@@ -2,14 +2,12 @@ package io.github.tuyendev.mbs.common.service.user;
 
 import java.util.Set;
 
-import io.github.tuyendev.mbs.common.entity.rdb.Authority;
 import io.github.tuyendev.mbs.common.entity.rdb.Role;
 import io.github.tuyendev.mbs.common.entity.rdb.User;
-import io.github.tuyendev.mbs.common.repository.rdb.AuthorityRepository;
-import io.github.tuyendev.mbs.common.repository.rdb.RoleRepository;
 import io.github.tuyendev.mbs.common.repository.rdb.UserRepository;
 import io.github.tuyendev.mbs.common.security.DomainUserDetails;
 import io.github.tuyendev.mbs.common.security.SecurityUserInfoProvider;
+import io.github.tuyendev.mbs.common.service.role.RoleService;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.validator.internal.constraintvalidators.bv.EmailValidator;
 
@@ -24,9 +22,7 @@ public class UserServiceImpl implements UserService, SecurityUserInfoProvider {
 
 	private final UserRepository userRepo;
 
-	private final RoleRepository roleRepo;
-
-	private final AuthorityRepository authorityRepo;
+	private final RoleService roleService;
 
 	@Override
 	public DomainUserDetails getUserInfoByPrincipal(String principal) {
@@ -44,12 +40,7 @@ public class UserServiceImpl implements UserService, SecurityUserInfoProvider {
 
 	private void fulfillUserInfo(User user) {
 		Set<Long> roleIds = user.roleIds();
-		Set<Role> roles = roleRepo.findAllActiveByIdIn(roleIds);
-		for (Role role : roles) {
-			Set<Long> authorityIds = role.authorityIds();
-			Set<Authority> authorities = authorityRepo.findAllActiveByIdIn(authorityIds);
-			role.setAuthorities(authorities);
-		}
+		Set<Role> roles = roleService.findAllActiveByIds(roleIds);
 		user.setRoles(roles);
 	}
 
