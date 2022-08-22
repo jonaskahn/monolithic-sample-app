@@ -20,32 +20,32 @@ public class Role extends AbstractJdbcEntity<Long> {
 
 	private Long parentId;
 
-	@Transient
-	private Role parent;
-
 	private String name;
 
 	private String description;
 
 	private Integer status;
 
+	@Transient
+	private Set<Authority> authorities;
+
 	@MappedCollection(idColumn = "role_id")
 	private Set<RoleUserRef> userRefs = new HashSet<>();
 
 	@MappedCollection(idColumn = "role_id")
-	private Set<Authority> authorities = new HashSet<>();
+	private Set<RoleAuthorityRef> authorityRefs = new HashSet<>();
 
 	public Role() {
 	}
 
-	public Role(Long id, Long parentId, String name, String description, Integer status, Set<RoleUserRef> userRefs, Set<Authority> authorities) {
+	public Role(Long id, Long parentId, String name, String description, Integer status, Set<RoleUserRef> userRefs, Set<RoleAuthorityRef> authorityRefs) {
 		this.id = id;
 		this.parentId = parentId;
 		this.name = name;
 		this.description = description;
 		this.status = status;
 		this.userRefs = userRefs;
-		this.authorities = authorities;
+		this.authorityRefs = authorityRefs;
 	}
 
 	public static RoleBuilder builder() {
@@ -60,7 +60,7 @@ public class Role extends AbstractJdbcEntity<Long> {
 				", description='" + description + '\'' +
 				", status=" + status +
 				", userRefs=" + userRefs +
-				", authorities=" + authorities +
+				", authorities=" + authorityRefs +
 				'}';
 	}
 
@@ -69,7 +69,7 @@ public class Role extends AbstractJdbcEntity<Long> {
 	}
 
 	public Set<Long> authorityIds() {
-		return StreamEx.of(authorities).map(Authority::getId).toImmutableSet();
+		return StreamEx.of(authorityRefs).map(RoleAuthorityRef::getAuthorityId).toImmutableSet();
 	}
 
 	@Override
@@ -77,12 +77,12 @@ public class Role extends AbstractJdbcEntity<Long> {
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
 		Role role = (Role) o;
-		return Objects.equals(id, role.id) && Objects.equals(parentId, role.parentId) && Objects.equals(name, role.name) && Objects.equals(description, role.description) && Objects.equals(status, role.status) && Objects.equals(userRefs, role.userRefs) && Objects.equals(authorities, role.authorities);
+		return Objects.equals(id, role.id) && Objects.equals(parentId, role.parentId) && Objects.equals(name, role.name) && Objects.equals(description, role.description) && Objects.equals(status, role.status) && Objects.equals(userRefs, role.userRefs) && Objects.equals(authorityRefs, role.authorityRefs);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(id, parentId, name, description, status, userRefs, authorities);
+		return Objects.hash(id, parentId, name, description, status, userRefs, authorityRefs);
 	}
 
 	public static class RoleBuilder {
@@ -98,7 +98,7 @@ public class Role extends AbstractJdbcEntity<Long> {
 
 		private Set<RoleUserRef> userRefs;
 
-		private Set<Authority> authorities;
+		private Set<RoleAuthorityRef> authorityRef;
 
 		RoleBuilder() {
 		}
@@ -133,17 +133,17 @@ public class Role extends AbstractJdbcEntity<Long> {
 			return this;
 		}
 
-		public RoleBuilder authorities(final Set<Authority> authorities) {
-			this.authorities = Objects.requireNonNullElse(authorities, new HashSet<>());
+		public RoleBuilder authorityRefs(final Set<RoleAuthorityRef> authorities) {
+			this.authorityRef = Objects.requireNonNullElse(authorities, new HashSet<>());
 			return this;
 		}
 
 		public Role build() {
-			return new Role(this.id, this.parentId, this.name, this.description, this.status, this.userRefs, this.authorities);
+			return new Role(this.id, this.parentId, this.name, this.description, this.status, this.userRefs, this.authorityRef);
 		}
 
 		public String toString() {
-			return "Role.RoleBuilder(id=" + this.id + ", name=" + this.name + ", description=" + this.description + ", status=" + this.status + ", userRefs=" + this.userRefs + ", authorities=" + this.authorities + ")";
+			return "Role.RoleBuilder(id=" + this.id + ", name=" + this.name + ", description=" + this.description + ", status=" + this.status + ", userRefs=" + this.userRefs + ", authorityRefs=" + this.authorityRef + ")";
 		}
 	}
 }

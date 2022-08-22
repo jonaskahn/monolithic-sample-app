@@ -9,19 +9,17 @@ import org.zalando.problem.spring.web.advice.security.SecurityProblemSupport;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
-@EnableWebSecurity(debug = true)
+@EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true, jsr250Enabled = true)
 @Import(SecurityProblemSupport.class)
 class DefaultWebSecurityConfigurer {
@@ -29,19 +27,9 @@ class DefaultWebSecurityConfigurer {
 
 	private final JwtTokenProvider tokenProvider;
 
-	private final RoleHierarchy roleHierarchy;
-
-	public DefaultWebSecurityConfigurer(SecurityProblemSupport problemSupport, JwtTokenProvider tokenProvider, RoleHierarchy roleHierarchy) {
+	public DefaultWebSecurityConfigurer(SecurityProblemSupport problemSupport, JwtTokenProvider tokenProvider) {
 		this.problemSupport = problemSupport;
 		this.tokenProvider = tokenProvider;
-		this.roleHierarchy = roleHierarchy;
-	}
-
-	@Bean
-	public DefaultWebSecurityExpressionHandler webSecurityExpressionHandler() {
-		DefaultWebSecurityExpressionHandler expressionHandler = new DefaultWebSecurityExpressionHandler();
-		expressionHandler.setRoleHierarchy(roleHierarchy);
-		return expressionHandler;
 	}
 
 	@Bean
@@ -64,7 +52,7 @@ class DefaultWebSecurityConfigurer {
 					.sessionManagement()
 					.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
 				.and()
-					.authorizeRequests().expressionHandler(webSecurityExpressionHandler())
+					.authorizeRequests()
 						.antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 						.antMatchers("/webjars/**", "/error/**").permitAll()
 						.antMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()

@@ -12,34 +12,77 @@ CREATE TABLE IF NOT EXISTS
     STATUS INT(1) NULL
     );
 
+CREATE TABLE IF NOT EXISTS features
+(
+    id          bigint auto_increment,
+    name        varchar(255) not null,
+    type        int(1) default 2 not null comment '1 - Equals SYSTEM initial - Cannot modify after initial
+2 - Equals APP initial',
+    description text         null,
+    created_by   VARCHAR(255) NULL,
+    created_date DATETIME(6) NULL,
+    last_modified_by VARCHAR(255) NULL,
+    last_modified_date DATETIME(6) NULL,
+    constraint features_pk
+        primary key (id)
+);
+
+create unique index features_id_uindex
+    on features (id);
+
+create unique index features_name_uindex
+    on features (name);
+
+CREATE TABLE IF NOT EXISTS authorities
+(
+    id                 bigint auto_increment
+        primary key,
+    created_by         varchar(255) null,
+    created_date       datetime(6)  null,
+    last_modified_by   varchar(255) null,
+    last_modified_date datetime(6)  null,
+    description        varchar(500) null,
+    name               varchar(100) null,
+    status             int(1)       null,
+    feature_id         bigint       not null,
+    constraint authorities_features_id_fk
+        foreign key (feature_id) references features (id)
+);
+
+
 CREATE TABLE IF NOT EXISTS
     roles (
               id BIGINT AUTO_INCREMENT PRIMARY KEY,
               created_by VARCHAR(255) NULL,
-              created_date DATETIME(6) NULL,
-              last_modified_by VARCHAR(255) NULL,
-              last_modified_date DATETIME(6) NULL,
-              description VARCHAR(500) NULL,
-              NAME VARCHAR(100) NULL,
-              STATUS INT(1) NULL,
-              parent_id BIGINT NULL,
-              CONSTRAINT uk_roles_name UNIQUE (NAME),
-              CONSTRAINT fk_roles__roles FOREIGN KEY (parent_id) REFERENCES roles (id)
+    created_date DATETIME(6) NULL,
+    last_modified_by VARCHAR(255) NULL,
+    last_modified_date DATETIME(6) NULL,
+    description VARCHAR(500) NULL,
+    NAME VARCHAR(100) NULL,
+    STATUS INT(1) NULL,
+    parent_id BIGINT NULL,
+    CONSTRAINT uk_roles_name UNIQUE (NAME),
+    CONSTRAINT fk_roles__roles FOREIGN KEY (parent_id) REFERENCES roles (id)
+    );
+
+CREATE TABLE IF NOT EXISTS role_authorities
+(
+    role_id      bigint not null,
+    authority_id bigint not null,
+    created_by   VARCHAR(255) NULL,
+    created_date DATETIME(6) NULL,
+    last_modified_by VARCHAR(255) NULL,
+    last_modified_date DATETIME(6) NULL,
+    constraint role_authorities_pk
+        unique (role_id, authority_id),
+    constraint role_authorities_authorities_id_fk
+        foreign key (authority_id) references authorities (id),
+    constraint role_authorities_roles_id_fk
+        foreign key (role_id) references roles (id)
 );
 
-CREATE TABLE IF NOT EXISTS
-    authorities (
-                    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-                    role_id BIGINT NOT NULL,
-                    created_by VARCHAR(255) NULL,
-                    created_date DATETIME(6) NULL,
-                    last_modified_by VARCHAR(255) NULL,
-                    last_modified_date DATETIME(6) NULL,
-                    description VARCHAR(500) NULL,
-                    NAME VARCHAR(100) NULL,
-                    STATUS INT(1) NULL,
-                    CONSTRAINT authorities_roles_id_fk FOREIGN KEY (role_id) REFERENCES roles (id)
-);
+create index role_authorities_role_id_authority_id_index
+    on role_authorities (role_id, authority_id);
 
 CREATE TABLE IF NOT EXISTS
     users (
@@ -85,7 +128,7 @@ CREATE TABLE IF NOT EXISTS
     CONSTRAINT fk_user_roles__users FOREIGN KEY (user_id) REFERENCES users (id)
     );
 
-CREATE TABLE
+CREATE TABLE IF NOT EXISTS
     access_tokens (
                       id VARCHAR(255) NOT NULL PRIMARY KEY,
                       user_id BIGINT NOT NULL,
@@ -94,7 +137,7 @@ CREATE TABLE
                       CONSTRAINT fk_access_tokens__users FOREIGN KEY (user_id) REFERENCES users (id)
 );
 
-CREATE TABLE
+CREATE TABLE IF NOT EXISTS
     refresh_tokens (
                        id VARCHAR(255) NOT NULL PRIMARY KEY,
                        access_token_id VARCHAR(255) NOT NULL,

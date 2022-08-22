@@ -32,16 +32,4 @@ public interface RoleRepository extends CrudRepository<Role, Long> {
 	default Set<Role> findAllActiveByIdIn(final Collection<Long> ids) {
 		return findAllByIdInAndStatus(ids, CommonConstants.EntityStatus.ACTIVE);
 	}
-
-	Set<Role> findAllByStatus(Integer status);
-
-	default Set<Role> findAllActive() {
-		Set<Role> roles = findAllByStatus(CommonConstants.EntityStatus.ACTIVE);
-		for (Role role : roles) {
-			if (Objects.nonNull(role.getParentId())) {
-				role.setParent(this.findActiveRoleById(role.getParentId()).orElse(null));
-			}
-		}
-		return roles;
-	}
 }

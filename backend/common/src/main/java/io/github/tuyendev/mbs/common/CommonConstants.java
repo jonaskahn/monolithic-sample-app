@@ -20,6 +20,8 @@ public abstract class CommonConstants {
 
 		public static final String GROUP = "groups";
 
+		public static final String FEATURE = "features";
+
 		public static final String GROUP_MEMBER = "group_members";
 	}
 
@@ -52,6 +54,13 @@ public abstract class CommonConstants {
 		public static final String DEFAULT_ROLE_MEMBER = "MEMBER";
 
 		public static final String DEFAULT_ROLE_ADMIN = "ADMIN";
+	}
+
+	public static abstract class FeatureType {
+
+		public static final Integer SYSTEM = 1;
+
+		public static final Integer APP = 2;
 	}
 
 	public static abstract class Privilege {
