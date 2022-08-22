@@ -53,9 +53,9 @@ public abstract class CommonConstants {
 
 
 	public static abstract class TokenAudience {
-		public static final String ACCESS_TOKEN = "ACCTN";
+		public static final String ACCESS_TOKEN = "ACC";
 
-		public static final String REFRESH_TOKEN = "REFTN";
+		public static final String REFRESH_TOKEN = "REF";
 	}
 
 	public static abstract class Role {
@@ -72,15 +72,6 @@ public abstract class CommonConstants {
 	}
 
 	public static abstract class Privilege {
-
-		public static final String READ_PREFIX = "READ_";
-
-		public static final String WRITE_PREFIX = "WRITE_";
-
-		public static final String UPDATE_PREFIX = "UPDATE_";
-
-		public static final String DELETE_PREFIX = "DELETE_";
-
 		public static final String READ_BASIC = "READ_BASIC";
 
 		public static final String WRITE_BASIC = "WRITE_BASIC";

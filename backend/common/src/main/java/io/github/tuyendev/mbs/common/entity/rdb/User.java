@@ -4,9 +4,12 @@ import java.time.LocalDate;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import io.github.tuyendev.mbs.common.CommonConstants.EntityName;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import one.util.streamex.StreamEx;
@@ -18,9 +21,12 @@ import org.springframework.data.relational.core.mapping.Table;
 @Getter
 @Setter
 @Table(value = EntityName.USER)
+@Builder
 public class User extends AbstractJdbcEntity<Long> {
 
 	private String username;
+
+	private String preferredUsername;
 
 	private String password;
 
@@ -57,12 +63,19 @@ public class User extends AbstractJdbcEntity<Long> {
 	@MappedCollection(idColumn = "user_id")
 	private Set<UserGroupRef> groupRefs = new HashSet<>();
 
+	@Transient
+	private Set<String> authorities = new HashSet<>();
+
 	public User() {
 	}
 
-	public User(Long id, String username, String password, String email, Integer emailVerified, String familyName, String middleName, String givenName, String name, String unsigned_name, String phoneNumber, Integer phoneNumberVerified, Integer gender, LocalDate birthdate, Integer status, Set<UserRoleRef> roleRefs, Set<UserGroupRef> groupRefs) {
-		this.id = id;
+	public User(String username, String preferredUsername, String password, String email,
+			Integer emailVerified, String familyName, String middleName, String givenName,
+			String name, String unsigned_name, String phoneNumber, Integer phoneNumberVerified,
+			Integer gender, LocalDate birthdate, Integer status, Set<Role> roles,
+			Set<UserRoleRef> roleRefs, Set<UserGroupRef> groupRefs, Set<String> authorities) {
 		this.username = username;
+		this.preferredUsername = preferredUsername;
 		this.password = password;
 		this.email = email;
 		this.emailVerified = emailVerified;
@@ -76,12 +89,10 @@ public class User extends AbstractJdbcEntity<Long> {
 		this.gender = gender;
 		this.birthdate = birthdate;
 		this.status = status;
+		this.roles = roles;
 		this.roleRefs = roleRefs;
 		this.groupRefs = groupRefs;
-	}
-
-	public static UserBuilder builder() {
-		return new UserBuilder();
+		this.authorities = authorities;
 	}
 
 	public void addRole(Role role) {
@@ -100,11 +111,22 @@ public class User extends AbstractJdbcEntity<Long> {
 		return StreamEx.of(groupRefs).map(UserGroupRef::getGroupId).toImmutableSet();
 	}
 
+	public Set<String> getAuthorities() {
+		return Optional.of(this)
+				.map(User::getRoles).stream()
+				.flatMap(Collection::stream)
+				.map(Role::getAuthorities)
+				.flatMap(Collection::stream)
+				.map(Authority::getName)
+				.collect(Collectors.toSet());
+	}
+
+
 	@Override
 	public String toString() {
 		return "User{" +
-				"id=" + id +
-				", username='" + username + '\'' +
+				"username='" + username + '\'' +
+				", preferredUsername='" + preferredUsername + '\'' +
 				", password='" + "REMOVED" + '\'' +
 				", email='" + email + '\'' +
 				", emailVerified=" + emailVerified +
@@ -118,27 +140,17 @@ public class User extends AbstractJdbcEntity<Long> {
 				", gender=" + gender +
 				", birthdate=" + birthdate +
 				", status=" + status +
+				", roles=" + roles +
+				", roleRefs=" + roleRefs +
+				", groupRefs=" + groupRefs +
+				", authorities=" + authorities +
 				'}';
 	}
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
-		if (!super.equals(o)) return false;
-		User user = (User) o;
-		return Objects.equals(id, user.id) && Objects.equals(username, user.username) && Objects.equals(password, user.password) && Objects.equals(email, user.email) && Objects.equals(emailVerified, user.emailVerified) && Objects.equals(familyName, user.familyName) && Objects.equals(middleName, user.middleName) && Objects.equals(givenName, user.givenName) && Objects.equals(name, user.name) && Objects.equals(unsigned_name, user.unsigned_name) && Objects.equals(phoneNumber, user.phoneNumber) && Objects.equals(phoneNumberVerified, user.phoneNumberVerified) && Objects.equals(gender, user.gender) && Objects.equals(birthdate, user.birthdate) && Objects.equals(status, user.status);
-	}
-
-	@Override
-	public int hashCode() {
-		return Objects.hash(super.hashCode(), id, username, password, email, emailVerified, familyName, middleName, givenName, name, unsigned_name, phoneNumber, phoneNumberVerified, gender, birthdate, status);
-	}
-
 	public static class UserBuilder {
-		private Long id;
-
 		private String username;
+
+		private String preferredUsername;
 
 		private String password;
 
@@ -166,20 +178,24 @@ public class User extends AbstractJdbcEntity<Long> {
 
 		private Integer status;
 
+		private Set<Role> roles;
+
 		private Set<UserRoleRef> roleRefs;
 
 		private Set<UserGroupRef> groupRefs;
 
-		UserBuilder() {
-		}
+		private Set<String> authorities;
 
-		public UserBuilder id(final Long id) {
-			this.id = id;
-			return this;
+		UserBuilder() {
 		}
 
 		public UserBuilder username(final String username) {
 			this.username = username;
+			return this;
+		}
+
+		public UserBuilder preferredUsername(final String preferredUsername) {
+			this.preferredUsername = preferredUsername;
 			return this;
 		}
 
@@ -248,16 +264,16 @@ public class User extends AbstractJdbcEntity<Long> {
 			return this;
 		}
 
-		public UserBuilder roleRefs(final Set<UserRoleRef> roleRefs) {
-			this.roleRefs = Objects.requireNonNullElse(roleRefs, new HashSet<>());
-			return this;
-		}
-
-		public UserBuilder role(final Set<Role> roles) {
-			final Set<UserRoleRef> roleRefs = StreamEx.of(roles)
+		public UserBuilder roles(final Set<Role> roles) {
+			this.roles = roles;
+			this.roleRefs = StreamEx.of(roles)
 					.map(Role::getId)
 					.map(UserRoleRef::new)
 					.toImmutableSet();
+			return this;
+		}
+
+		public UserBuilder roleRefs(final Set<UserRoleRef> roleRefs) {
 			this.roleRefs = Objects.requireNonNullElse(roleRefs, new HashSet<>());
 			return this;
 		}
@@ -268,12 +284,11 @@ public class User extends AbstractJdbcEntity<Long> {
 		}
 
 		public User build() {
-			return new User(this.id, this.username, this.password, this.email, this.emailVerified, this.familyName, this.middleName, this.givenName, this.name, this.unsigned_name, this.phoneNumber, this.phoneNumberVerified, this.gender, this.birthdate, this.status, this.roleRefs, this.groupRefs);
+			return new User(this.username, this.preferredUsername, this.password, this.email, this.emailVerified, this.familyName, this.middleName, this.givenName, this.name, this.unsigned_name, this.phoneNumber, this.phoneNumberVerified, this.gender, this.birthdate, this.status, this.roles, this.roleRefs, this.groupRefs, this.authorities);
 		}
 
 		public String toString() {
-			return "User.UserBuilder(id=" + this.id + ", username=" + this.username + ", password=" + "REMOVED" + ", email=" + this.email + ", emailVerified=" + this.emailVerified + ", familyName=" + this.familyName + ", middleName=" + this.middleName + ", givenName=" + this.givenName + ", name=" + this.name + ", unsigned_name=" + this.unsigned_name + ", phoneNumber=" + this.phoneNumber + ", phoneNumberVerified=" + this.phoneNumberVerified + ", gender=" + this.gender + ", birthdate=" + this.birthdate + ", status=" + this.status + ", roleRefs=" + this.roleRefs + ", groupRefs=" + this.groupRefs + ")";
+			return "User.UserBuilder(username=" + this.username + ", preferredUsername=" + this.preferredUsername + ", password=" + this.password + ", email=" + this.email + ", emailVerified=" + this.emailVerified + ", familyName=" + this.familyName + ", middleName=" + this.middleName + ", givenName=" + this.givenName + ", name=" + this.name + ", unsigned_name=" + this.unsigned_name + ", phoneNumber=" + this.phoneNumber + ", phoneNumberVerified=" + this.phoneNumberVerified + ", gender=" + this.gender + ", birthdate=" + this.birthdate + ", status=" + this.status + ", roles=" + this.roles + ", roleRefs=" + this.roleRefs + ", groupRefs=" + this.groupRefs + ", authorities=" + this.authorities + ")";
 		}
 	}
-
 }

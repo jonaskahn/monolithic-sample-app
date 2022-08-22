@@ -99,11 +99,12 @@ CREATE TABLE IF NOT EXISTS
     PASSWORD VARCHAR(255) NULL,
     phone_number VARCHAR(255) NULL,
     phone_number_verified INT(1) NULL,
-    preferred_username VARCHAR(255) NULL,
+    preferred_username VARCHAR(255) NOT NULL,
     unsigned_name VARCHAR(255) NULL,
     username VARCHAR(255) NOT NULL,
     CONSTRAINT uk_users_username UNIQUE (username),
-    CONSTRAINT uk_users_email UNIQUE (email)
+    CONSTRAINT uk_users_email UNIQUE (email),
+    CONSTRAINT users_preferred_username_uindex UNIQUE (preferred_username)
     );
 
 CREATE TABLE IF NOT EXISTS

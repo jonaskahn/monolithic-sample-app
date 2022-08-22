@@ -105,10 +105,11 @@ public class JwtTokenProviderService implements JwtTokenProvider {
 		final String token = Jwts.builder()
 				.setId(id)
 				.setAudience(CommonConstants.TokenAudience.ACCESS_TOKEN)
-				.setSubject(user.getId().toString())
+				.setSubject(user.getPreferredUsername())
 				.setIssuedAt(issuedAt)
 				.setNotBefore(issuedAt)
 				.setExpiration(expiration)
+				.claim("aut", user.getAuthorities())
 				.signWith(secretKey)
 				.compact();
 		return AccessToken.builder()
@@ -164,7 +165,8 @@ public class JwtTokenProviderService implements JwtTokenProvider {
 		accessToken.setStatus(CommonConstants.EntityStatus.DELETED);
 		accessToken.getRefreshToken().setStatus(CommonConstants.EntityStatus.DELETED);
 		accessTokenRepo.save(accessToken);
-		setAuthenticationByRefreshToken(accessToken.getUserId(), jwtToken);
+		User user = userService.findActiveUserById(accessToken.getUserId());
+		setAuthenticationByRefreshToken(user, jwtToken);
 		return createToken(true);
 	}
 
@@ -179,12 +181,11 @@ public class JwtTokenProviderService implements JwtTokenProvider {
 		}
 	}
 
-	private void setAuthenticationByRefreshToken(Long userId, String jwtToken) {
-		setAuthenticationAfterSuccess(userId, jwtToken);
+	private void setAuthenticationByRefreshToken(User user, String jwtToken) {
+		setAuthenticationAfterSuccess(user, jwtToken);
 	}
 
-	private void setAuthenticationAfterSuccess(Long userId, String jwtToken) {
-		User user = userService.findActiveUserById(userId);
+	private void setAuthenticationAfterSuccess(User user, String jwtToken) {
 		UserDetails userDetails = buildPrincipalForRefreshTokenFromUser(user, jwtToken);
 		Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 		SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -204,13 +205,14 @@ public class JwtTokenProviderService implements JwtTokenProvider {
 		}
 		AccessToken accessToken = accessTokenRepo.findActiveAccessTokenById(claims.getId()).
 				orElseThrow(RevokedJwtTokenException::new);
-		setAuthenticationByAccessToken(accessToken.getUserId(), Long.valueOf(claims.getSubject()), jwtToken);
+		User user = userService.findActiveUserById(accessToken.getUserId());
+		setAuthenticationByAccessToken(user, claims.getSubject(), jwtToken);
 	}
 
-	private void setAuthenticationByAccessToken(Long userId, Long subjectUserId, String jwtToken) {
-		if (!Objects.equals(subjectUserId, userId)) {
+	private void setAuthenticationByAccessToken(User user, String preferredUsername, String jwtToken) {
+		if (!Objects.equals(preferredUsername, user.getPreferredUsername())) {
 			throw new InvalidJwtTokenException();
 		}
-		setAuthenticationAfterSuccess(userId, jwtToken);
+		setAuthenticationAfterSuccess(user, jwtToken);
 	}
 }
