@@ -12,6 +12,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.oauth2.server.resource.OAuth2ResourceServerConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
@@ -19,7 +20,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
-@EnableWebSecurity
+@EnableWebSecurity(debug = true)
 @EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true, jsr250Enabled = true)
 @Import(SecurityProblemSupport.class)
 class DefaultWebSecurityConfigurer {
@@ -63,7 +64,9 @@ class DefaultWebSecurityConfigurer {
 					.formLogin().disable()
 					.logout().disable()
 					.httpBasic().disable()
-					.apply(securityConfigurerAdapter());
+					.apply(securityConfigurerAdapter())
+				.and()
+					.oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt);
 		return http.build();
 		// @formatter:on
 	}

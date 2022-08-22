@@ -2,10 +2,14 @@ package io.github.tuyendev.mbs.common.service.auth;
 
 import java.security.Key;
 import java.time.LocalDateTime;
+import java.util.Base64;
 import java.util.Date;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.tuyendev.mbs.common.CommonConstants;
 import io.github.tuyendev.mbs.common.entity.rdb.AccessToken;
 import io.github.tuyendev.mbs.common.entity.rdb.RefreshToken;
@@ -35,6 +39,7 @@ import org.springframework.security.authentication.AccountStatusUserDetailsCheck
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -44,6 +49,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Transactional(rollbackFor = Exception.class)
 public class JwtTokenProviderService implements JwtTokenProvider {
+
+	private static final ObjectMapper JACKSON_MAPPER;
 
 	private final JwtParser jwtParser;
 
@@ -159,6 +166,9 @@ public class JwtTokenProviderService implements JwtTokenProvider {
 	@Override
 	public JwtAccessToken refreshToken(String jwtToken) {
 		Claims claims = getClaims(jwtToken);
+		if (!Objects.equals(claims.getIssuer(), issuer)) {
+			throw new UnknownIssuerTokenException();
+		}
 		if (!Objects.equals(claims.getAudience(), CommonConstants.TokenAudience.REFRESH_TOKEN)) {
 			throw new InvalidAudienceTokenException();
 		}
@@ -193,7 +203,9 @@ public class JwtTokenProviderService implements JwtTokenProvider {
 	private void setAuthenticationAfterSuccess(User user, String jwtToken) {
 		UserDetails userDetails = buildPrincipalForRefreshTokenFromUser(user, jwtToken);
 		Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-		SecurityContextHolder.getContext().setAuthentication(authentication);
+		SecurityContext context = SecurityContextHolder.createEmptyContext();
+		context.setAuthentication(authentication);
+		SecurityContextHolder.setContext(context);
 	}
 
 	private UserDetails buildPrincipalForRefreshTokenFromUser(final User user, final String jwt) {
@@ -219,5 +231,24 @@ public class JwtTokenProviderService implements JwtTokenProvider {
 			throw new InvalidJwtTokenException();
 		}
 		setAuthenticationAfterSuccess(user, jwtToken);
+	}
+
+	@Override
+	public boolean isSelfIssuer(String jwtToken) {
+		try {
+			Base64.Decoder decoder = Base64.getUrlDecoder();
+			var payload = decoder.decode(jwtToken.split("\\.")[1]);
+			Map<String, String> claims = JACKSON_MAPPER.readValue(payload, Map.class);
+			return Objects.equals(claims.get((Claims.ISSUER)), issuer);
+		}
+		catch (Exception e) {
+			log.error("Cannot parse payload in jwtToken", e);
+			throw new InvalidJwtTokenException();
+		}
+	}
+
+	static {
+		JACKSON_MAPPER = new ObjectMapper();
+		JACKSON_MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 	}
 }
