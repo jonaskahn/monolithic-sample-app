@@ -3,6 +3,7 @@ package io.github.tuyendev.mbs.common.configurer;
 import java.util.Objects;
 import java.util.Optional;
 
+import io.github.tuyendev.mbs.common.CommonConstants;
 import io.github.tuyendev.mbs.common.entity.ManualPersistable;
 import io.github.tuyendev.mbs.common.utils.AppContextUtils;
 
@@ -60,7 +61,7 @@ class DatabaseAccessConfigurer {
 			Optional<Authentication> authentication = Optional.ofNullable(SecurityContextHolder.getContext())
 					.map(SecurityContext::getAuthentication);
 			if (authentication.isPresent() && Objects.equals("anonymousUser", authentication.get().getPrincipal())) {
-				return Optional.of(0L);
+				return Optional.of(CommonConstants.User.ANONYMOUS_ID);
 			}
 			return AppContextUtils.getCurrentLoginUserId();
 		}

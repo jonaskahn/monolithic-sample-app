@@ -25,6 +25,13 @@ public abstract class CommonConstants {
 		public static final String GROUP_MEMBER = "group_members";
 	}
 
+
+	public static abstract class  User {
+		public static final Long SYSTEM_ID = 0L;
+		public static final Long ANONYMOUS_ID = -1L;
+	}
+
+
 	public static abstract class EntityStatus {
 		public static final Integer ACTIVE = 1;
 
