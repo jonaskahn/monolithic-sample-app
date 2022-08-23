@@ -38,7 +38,7 @@ public class DomainUserDetails implements UserDetails {
 
 	@Override
 	public String getUsername() {
-		return Objects.requireNonNullElse(principal, user.getId().toString());
+		return principal;
 	}
 
 	@Override
@@ -48,7 +48,7 @@ public class DomainUserDetails implements UserDetails {
 
 	@Override
 	public boolean isAccountNonLocked() {
-		return !Objects.equals(user.getStatus(), CommonConstants.EntityStatus.LOCK);
+		return Objects.equals(this.user.getLocked(), CommonConstants.EntityStatus.UNLOCKED);
 	}
 
 	@Override
@@ -58,7 +58,7 @@ public class DomainUserDetails implements UserDetails {
 
 	@Override
 	public boolean isEnabled() {
-		return Objects.equals(user.getStatus(), CommonConstants.EntityStatus.ENABLED);
+		return Objects.equals(user.getEnabled(), CommonConstants.EntityStatus.ENABLED);
 	}
 
 	public User getUser() {

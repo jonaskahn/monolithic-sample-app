@@ -107,7 +107,7 @@ class BootstrapAppConfigurer {
 	}
 
 	private void createAdminUserIfNotExist() {
-		if (userRepo.existsActiveUserByUsername(this.adminUsername)) {
+		if (userRepo.existsByUsername(this.adminUsername)) {
 			return;
 		}
 		Role adminRole = roleRepo.findActiveRoleByName(DEFAULT_ROLE_ADMIN)
@@ -119,7 +119,8 @@ class BootstrapAppConfigurer {
 				.preferredUsername(UUID.randomUUID().toString())
 				.password(passwordEncoder.encode(this.adminPassword))
 				.roles(Set.of(adminRole))
-				.status(CommonConstants.EntityStatus.ACTIVE)
+				.enabled(CommonConstants.EntityStatus.ENABLED)
+				.locked(CommonConstants.EntityStatus.UNLOCKED)
 				.build();
 		userRepo.save(user);
 	}

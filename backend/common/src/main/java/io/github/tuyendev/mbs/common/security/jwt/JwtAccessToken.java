@@ -16,11 +16,12 @@ import lombok.NoArgsConstructor;
 public class JwtAccessToken implements Serializable {
 	private String type;
 
+	private String accessToken;
+
 	private Long accessTokenExpiration;
 
-	private String accessToken;
+	private String refreshToken;
 
 	private Long refreshTokenExpiration;
 
-	private String refreshToken;
 }
