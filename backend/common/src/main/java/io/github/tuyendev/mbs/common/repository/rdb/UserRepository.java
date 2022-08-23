@@ -31,4 +31,5 @@ public interface UserRepository extends CrudRepository<User, Long> {
 		return existsUserByEmailAndStatus(email, CommonConstants.EntityStatus.ACTIVE);
 	}
 
+	boolean existsByEmail(final String email);
 }

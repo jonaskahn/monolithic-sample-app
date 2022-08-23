@@ -6,6 +6,7 @@ import java.util.Base64;
 import java.util.Date;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -13,15 +14,20 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.tuyendev.mbs.common.CommonConstants;
 import io.github.tuyendev.mbs.common.entity.rdb.AccessToken;
 import io.github.tuyendev.mbs.common.entity.rdb.RefreshToken;
+import io.github.tuyendev.mbs.common.entity.rdb.Role;
 import io.github.tuyendev.mbs.common.entity.rdb.User;
 import io.github.tuyendev.mbs.common.repository.rdb.AccessTokenRepository;
 import io.github.tuyendev.mbs.common.repository.rdb.RefreshTokenRepository;
+import io.github.tuyendev.mbs.common.repository.rdb.RoleRepository;
+import io.github.tuyendev.mbs.common.repository.rdb.UserRepository;
 import io.github.tuyendev.mbs.common.security.DomainUserDetails;
+import io.github.tuyendev.mbs.common.security.SecurityUserInfoProvider;
 import io.github.tuyendev.mbs.common.security.jwt.JwtAccessToken;
 import io.github.tuyendev.mbs.common.security.jwt.JwtTokenProvider;
 import io.github.tuyendev.mbs.common.service.user.UserService;
 import io.github.tuyendev.mbs.common.utils.AppContextUtils;
 import io.github.tuyendev.mbs.common.utils.DateUtils;
+import io.github.tuyendev.mbs.common.utils.PasswordGeneratorUtils;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtParser;
@@ -35,6 +41,7 @@ import io.jsonwebtoken.security.SignatureException;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.AccountStatusUserDetailsChecker;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -42,6 +49,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -58,25 +67,40 @@ public class JwtTokenProviderService implements JwtTokenProvider {
 
 	private final AuthenticationManagerBuilder authenticationManagerBuilder;
 
+	private final PasswordEncoder passwordEncoder;
+
+	private final SecurityUserInfoProvider securityUserInfoProvider;
+
 	private final UserService userService;
 
 	private final AccessTokenRepository accessTokenRepo;
 
 	private final RefreshTokenRepository refreshTokenRepo;
 
+	private final UserRepository userRepo;
+
+	private final RoleRepository roleRepo;
+
 	@Value("${app.common.jwt.issuer}")
 	private String issuer;
 
-	@Value("${app.common.jwt.access-token-expiration}")
-	private long accessTokenExpirationInSeconds;
+	@Value("${app.common.jwt.access-token-expiration-in-minutes}")
+	private long accessTokenExpirationInMinutes;
 
-	@Value("${app.common.jwt.refresh-token-expiration}")
-	private long refreshTokenExpirationInSeconds;
+	@Value("${app.common.jwt.refresh-token-expiration-in-minutes}")
+	private long refreshTokenExpirationInMinutes;
+
+	@Value("${app.common.jwt.remember-me-expiration-in-minutes}")
+	private long rememberMeExpirationInMinutes;
 
 	public JwtTokenProviderService(@Value("${app.common.jwt.secret-key}") String jwtSecretKey,
-			AuthenticationManagerBuilder authenticationManagerBuilder, UserService userService,
-			AccessTokenRepository accessTokenRepo, RefreshTokenRepository refreshTokenRepo) {
+			AuthenticationManagerBuilder authenticationManagerBuilder, PasswordEncoder passwordEncoder, SecurityUserInfoProvider securityUserInfoProvider, UserService userService,
+			AccessTokenRepository accessTokenRepo, RefreshTokenRepository refreshTokenRepo, UserRepository userRepo, RoleRepository roleRepo) {
+		this.passwordEncoder = passwordEncoder;
+		this.securityUserInfoProvider = securityUserInfoProvider;
 		this.userService = userService;
+		this.userRepo = userRepo;
+		this.roleRepo = roleRepo;
 		byte[] keyBytes = Decoders.BASE64.decode(jwtSecretKey);
 		this.secretKey = Keys.hmacShaKeyFor(keyBytes);
 		this.jwtParser = Jwts.parserBuilder().setSigningKey(secretKey).build();
@@ -98,19 +122,16 @@ public class JwtTokenProviderService implements JwtTokenProvider {
 		User currentUser = AppContextUtils.getCurrentLoginUser()
 				.orElseThrow(() -> new RuntimeException("This should never happen since the authentication is completed before."));
 		final Date issuedAt = new Date();
-		final Date accessTokenExpiration = new Date(issuedAt.getTime() + accessTokenExpirationInSeconds * 1000);
-		AccessToken accessToken = createAccessToken(currentUser, accessTokenExpiration, issuedAt);
-		String refreshJwtToken = null;
-		if (rememberMe) {
-			RefreshToken refreshToken = createRefreshToken(accessToken.getId(), accessTokenExpiration, issuedAt);
-			refreshJwtToken = refreshToken.getToken();
-			accessToken.setRefreshToken(refreshToken);
-		}
+		AccessToken accessToken = createAccessToken(currentUser, issuedAt, rememberMe);
+		RefreshToken refreshToken = createRefreshToken(accessToken.getId(), issuedAt, rememberMe);
+		accessToken.setRefreshToken(refreshToken);
 		accessTokenRepo.save(accessToken);
-		return createJwtAccessToken(accessToken.getToken(), refreshJwtToken, accessToken.getExpiredAt());
+		return createJwtAccessToken(accessToken.getToken(), refreshToken.getToken(),
+				accessToken.getExpiredAt(), refreshToken.getExpiredAt());
 	}
 
-	private AccessToken createAccessToken(final User user, Date expiration, Date issuedAt) {
+	private AccessToken createAccessToken(final User user, Date issuedAt, boolean rememberMe) {
+		final Date expiration = getExpirationDate(issuedAt, accessTokenExpirationInMinutes, rememberMe);
 		final String id = UUID.randomUUID().toString();
 		final String token = Jwts.builder()
 				.setIssuer(issuer)
@@ -132,8 +153,12 @@ public class JwtTokenProviderService implements JwtTokenProvider {
 				.build();
 	}
 
-	private RefreshToken createRefreshToken(final String accessTokenId, Date notBefore, Date issuedAt) {
-		Date expiration = new Date(issuedAt.getTime() + refreshTokenExpirationInSeconds * 1000);
+	private Date getExpirationDate(Date issuedAt, long defaultExpiration, boolean rememberMe) {
+		return new Date(issuedAt.getTime() + (rememberMe ? (defaultExpiration + rememberMeExpirationInMinutes) : defaultExpiration) * 1000 * 60);
+	}
+
+	private RefreshToken createRefreshToken(final String accessTokenId, Date issuedAt, boolean rememberMe) {
+		Date expiration = getExpirationDate(issuedAt, refreshTokenExpirationInMinutes, rememberMe);
 		final String id = UUID.randomUUID().toString();
 		final String token = Jwts.builder()
 				.setIssuer(issuer)
@@ -141,7 +166,7 @@ public class JwtTokenProviderService implements JwtTokenProvider {
 				.setAudience(CommonConstants.TokenAudience.REFRESH_TOKEN)
 				.setSubject(accessTokenId)
 				.setIssuedAt(issuedAt)
-				.setNotBefore(notBefore)
+				.setNotBefore(issuedAt)
 				.setExpiration(expiration)
 				.signWith(secretKey)
 				.compact();
@@ -153,12 +178,14 @@ public class JwtTokenProviderService implements JwtTokenProvider {
 				.build();
 	}
 
-	private JwtAccessToken createJwtAccessToken(final String accessToken, final String refreshToken, final LocalDateTime expiredAt) {
+	private JwtAccessToken createJwtAccessToken(final String accessToken, final String refreshToken,
+			final LocalDateTime accessTokenExpiration, final LocalDateTime refreshTokenExpiration ) {
 		return JwtAccessToken.builder()
 				.type("Bearer")
 				.accessToken(accessToken)
 				.refreshToken(refreshToken)
-				.expiration(DateUtils.localDateTimeToDate(expiredAt).getTime())
+				.accessTokenExpiration(DateUtils.localDateTimeToDate(accessTokenExpiration).getTime())
+				.refreshTokenExpiration(DateUtils.localDateTimeToDate(refreshTokenExpiration).getTime())
 				.build();
 	}
 
@@ -245,6 +272,36 @@ public class JwtTokenProviderService implements JwtTokenProvider {
 			log.error("Cannot parse payload in jwtToken", e);
 			throw new InvalidJwtTokenException();
 		}
+	}
+
+
+	@Override
+	public AbstractAuthenticationToken authorizeOauth2Token(Jwt jwt) {
+		createUserIfNotExist(jwt);
+		UserDetails userDetails = securityUserInfoProvider.getUserInfoByPrincipal(jwt.getClaimAsString("email"));
+		return new UsernamePasswordAuthenticationToken(userDetails, jwt, userDetails.getAuthorities());
+	}
+
+	private void createUserIfNotExist(Jwt jwt) {
+		final String email = jwt.getClaimAsString("email");
+		if (userRepo.existsByEmail(email)) {
+			return;
+		}
+		Role memberRole = roleRepo.findActiveRoleByName(CommonConstants.Role.DEFAULT_ROLE_MEMBER)
+				.orElseThrow(() -> new RuntimeException("This should never happen"));
+		User user = User.builder()
+				.email(email)
+				.emailVerified(CommonConstants.EntityStatus.VERIFIED)
+				.username("openidc_" + jwt.getClaimAsString("preferred_username"))
+				.preferredUsername(UUID.randomUUID().toString())
+				.familyName(jwt.getClaimAsString("family_name"))
+				.givenName(jwt.getClaimAsString("given_name"))
+				.name(jwt.getClaimAsString("name"))
+				.password(passwordEncoder.encode(PasswordGeneratorUtils.generateStrongPassword()))
+				.roles(Set.of(memberRole))
+				.status(CommonConstants.EntityStatus.ACTIVE)
+				.build();
+		userRepo.save(user);
 	}
 
 	static {
