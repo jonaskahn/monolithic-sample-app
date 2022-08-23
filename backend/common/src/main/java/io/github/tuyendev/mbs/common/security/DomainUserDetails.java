@@ -26,7 +26,7 @@ public class DomainUserDetails implements UserDetails {
 
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
-		return StreamEx.of(user.getAuthorities())
+		return StreamEx.of(user.getAuthorityNames())
 				.map(SimpleGrantedAuthority::new)
 				.collect(Collectors.toList());
 	}

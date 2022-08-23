@@ -14,6 +14,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class JwtAccessToken implements Serializable {
+
 	private String type;
 
 	private String accessToken;

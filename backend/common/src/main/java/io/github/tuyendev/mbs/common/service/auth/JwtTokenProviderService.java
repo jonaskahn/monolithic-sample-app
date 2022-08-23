@@ -141,7 +141,7 @@ public class JwtTokenProviderService implements JwtTokenProvider {
 				.setIssuedAt(issuedAt)
 				.setNotBefore(issuedAt)
 				.setExpiration(expiration)
-				.claim("aut", user.getAuthorities())
+				.claim("aut", user.getAuthorityNames())
 				.signWith(secretKey)
 				.compact();
 		return AccessToken.builder()

@@ -10,9 +10,13 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
+import javax.servlet.http.HttpServletResponse;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.GenericFilterBean;
 
@@ -25,8 +29,11 @@ public class JwtTokenAuthenticationFilter extends GenericFilterBean {
 
 	private final JwtTokenProvider tokenProvider;
 
-	public JwtTokenAuthenticationFilter(JwtTokenProvider tokenProvider) {
+	private final AuthenticationEntryPoint authenticationEntryPoint;
+
+	public JwtTokenAuthenticationFilter(JwtTokenProvider tokenProvider, AuthenticationEntryPoint authenticationEntryPoint) {
 		this.tokenProvider = tokenProvider;
+		this.authenticationEntryPoint = authenticationEntryPoint;
 	}
 
 	@Override
@@ -38,8 +45,15 @@ public class JwtTokenAuthenticationFilter extends GenericFilterBean {
 		HttpServletRequest httpServletRequest = (HttpServletRequest) request;
 		String jwt = resolveToken(httpServletRequest);
 		if (StringUtils.hasText(jwt) && tokenProvider.isSelfIssuer(jwt)) {
-			this.tokenProvider.authorizeToken(jwt);
-			chain.doFilter(new HiddenTokenRequestWrapper((HttpServletRequest) request), response);
+			try {
+				this.tokenProvider.authorizeToken(jwt);
+				chain.doFilter(new HiddenTokenRequestWrapper((HttpServletRequest) request), response);
+			}
+			catch (AuthenticationException e) {
+				SecurityContextHolder.clearContext();
+				this.logger.trace("Failed to process authentication request", e);
+				this.authenticationEntryPoint.commence((HttpServletRequest) request, (HttpServletResponse) response, e);
+			}
 		}
 		else {
 			chain.doFilter(request, response);

@@ -103,45 +103,45 @@ public class User extends AbstractJdbcEntity<Long> {
 	}
 
 	private Set<UserRoleRef> fromRoles(Collection<Role> roles) {
-		if (CollectionUtils.isEmpty(roles)) return Set.of();
+		if (CollectionUtils.isEmpty(roles)) return new HashSet<>();
 		return StreamEx.of(roles)
 				.map(Role::getId)
 				.map(UserRoleRef::new)
-				.toImmutableSet();
+				.toSet();
 	}
 
 	private Set<UserGroupRef> fromGroups(Collection<Group> groups) {
-		if (CollectionUtils.isEmpty(groups)) return Set.of();
+		if (CollectionUtils.isEmpty(groups)) return new HashSet<>();
 		return StreamEx.of(groups)
 				.map(Group::getId)
 				.map(UserGroupRef::new)
-				.toImmutableSet();
+				.toSet();
+	}
+
+	private void setAuthorities(Set<String> authorities) {
+		this.authorities = authorities;
 	}
 
 	public Set<Long> roleIds() {
-		if (CollectionUtils.isEmpty(roleRefs)) return Set.of();
+		if (CollectionUtils.isEmpty(roleRefs)) return new HashSet<>();
 		return StreamEx.of(roleRefs)
 				.map(UserRoleRef::getRoleId)
 				.toImmutableSet();
 	}
 
 	public Set<Long> groupIds() {
-		if (CollectionUtils.isEmpty(groupRefs)) return Set.of();
+		if (CollectionUtils.isEmpty(groupRefs)) return new HashSet<>();
 		return StreamEx.of(groupRefs)
 				.map(UserGroupRef::getGroupId)
 				.toImmutableSet();
 	}
 
-	public Set<String> getAuthorities() {
-		if (CollectionUtils.isEmpty(roles)) return Set.of();
+	public Set<String> getAuthorityNames() {
+		if (CollectionUtils.isEmpty(roles)) return new HashSet<>();
 		return StreamEx.of(roles)
 				.map(Role::getAuthorities)
 				.flatMap(Collection::stream)
 				.map(Authority::getName)
 				.toImmutableSet();
-	}
-
-	private void setAuthorities(Set<String> authorities) {
-		this.authorities = authorities;
 	}
 }
