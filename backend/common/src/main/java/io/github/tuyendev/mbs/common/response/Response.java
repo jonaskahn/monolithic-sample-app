@@ -16,8 +16,10 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import org.springframework.beans.PropertyAccessException;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.converter.HttpMessageConversionException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AccountExpiredException;
 import org.springframework.security.authentication.AccountStatusException;
@@ -29,6 +31,8 @@ import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.FieldError;
+import org.springframework.web.HttpMediaTypeNotAcceptableException;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
@@ -94,10 +98,38 @@ public class Response<T> implements Serializable {
 				.build();
 	}
 
+	public static Response failed(HttpMediaTypeNotSupportedException e) {
+		return Response.builder().status(HttpStatus.NOT_ACCEPTABLE.value())
+				.metadata(Metadata.errorBlock(e))
+				.payload(ErrorContent.build("app.common.exception.unsupported-media-type"))
+				.build();
+	}
+
+	public static Response failed(HttpMediaTypeNotAcceptableException e) {
+		return Response.builder().status(HttpStatus.NOT_ACCEPTABLE.value())
+				.metadata(Metadata.errorBlock(e))
+				.payload(ErrorContent.build("app.common.exception.not-accept-media-type"))
+				.build();
+	}
+
 	public static Response failed(ServletException e) {
-		return Response.builder().status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+		return Response.builder().status(HttpStatus.BAD_REQUEST.value())
 				.metadata(Metadata.errorBlock(e))
 				.payload(ErrorContent.build("app.common.exception.servlet"))
+				.build();
+	}
+
+	public static Response failed(HttpMessageConversionException e) {
+		return Response.builder().status(HttpStatus.BAD_REQUEST.value())
+				.metadata(Metadata.errorBlock(e))
+				.payload(ErrorContent.build("app.common.exception.message-conversion"))
+				.build();
+	}
+
+	public static Response failed(PropertyAccessException e) {
+		return Response.builder().status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+				.metadata(Metadata.errorBlock(e))
+				.payload(ErrorContent.build("app.common.exception.property-access"))
 				.build();
 	}
 

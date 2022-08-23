@@ -27,11 +27,11 @@ public class UserServiceImpl implements UserService, SecurityUserInfoProvider {
 	@Override
 	public DomainUserDetails getUserInfoByPrincipal(String principal) {
 		User user = new EmailValidator().isValid(principal, null) ?
-				findActiveUserByEmail(principal) : findActiveUserByUsername(principal);
+				findUserByEmail(principal) : findUserByUsername(principal);
 		return new DomainUserDetails(user, principal);
 	}
 
-	private User findActiveUserByUsername(String username) {
+	private User findUserByUsername(String username) {
 		User user = userRepo.findUserByUsername(username)
 				.orElseThrow(() -> new UsernameNotFoundException(eval("app.user.exception.not-found")));
 		fulfillUserInfo(user);
@@ -44,7 +44,7 @@ public class UserServiceImpl implements UserService, SecurityUserInfoProvider {
 		user.setRoles(roles);
 	}
 
-	private User findActiveUserByEmail(String email) {
+	private User findUserByEmail(String email) {
 		User user = userRepo.findUserByEmail(email)
 				.orElseThrow(() -> new UsernameNotFoundException(eval("app.user.exception.not-found")));
 		fulfillUserInfo(user);
@@ -52,7 +52,7 @@ public class UserServiceImpl implements UserService, SecurityUserInfoProvider {
 	}
 
 	public User findActiveUserById(Long userId) {
-		User user = userRepo.findActiveUserById(userId)
+		User user = userRepo.findUserById(userId)
 				.orElseThrow(() -> new UsernameNotFoundException(eval("app.user.exception.not-found")));
 		fulfillUserInfo(user);
 		return user;

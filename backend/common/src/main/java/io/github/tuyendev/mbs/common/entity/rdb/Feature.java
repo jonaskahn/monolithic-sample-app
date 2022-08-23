@@ -19,8 +19,6 @@ import org.springframework.data.relational.core.mapping.Table;
 @Builder
 public class Feature extends AbstractJdbcEntity<Long> {
 
-	private Long id;
-
 	private String name;
 
 	private Integer type;

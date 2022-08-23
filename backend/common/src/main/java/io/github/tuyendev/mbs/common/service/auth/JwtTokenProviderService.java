@@ -141,7 +141,7 @@ public class JwtTokenProviderService implements JwtTokenProvider {
 				.setIssuedAt(issuedAt)
 				.setNotBefore(issuedAt)
 				.setExpiration(expiration)
-				.claim("aut", user.getAuthorities())
+				.claim("aut", user.getAuthorityNames())
 				.signWith(secretKey)
 				.compact();
 		return AccessToken.builder()
@@ -276,7 +276,7 @@ public class JwtTokenProviderService implements JwtTokenProvider {
 
 
 	@Override
-	public AbstractAuthenticationToken authorizeOauth2Token(Jwt jwt) {
+	public AbstractAuthenticationToken transferOauth2AuthenticationToUsernamePassswordAuthentication(Jwt jwt) {
 		createUserIfNotExist(jwt);
 		UserDetails userDetails = securityUserInfoProvider.getUserInfoByPrincipal(jwt.getClaimAsString("email"));
 		return new UsernamePasswordAuthenticationToken(userDetails, jwt, userDetails.getAuthorities());
@@ -299,7 +299,8 @@ public class JwtTokenProviderService implements JwtTokenProvider {
 				.name(jwt.getClaimAsString("name"))
 				.password(passwordEncoder.encode(PasswordGeneratorUtils.generateStrongPassword()))
 				.roles(Set.of(memberRole))
-				.status(CommonConstants.EntityStatus.ACTIVE)
+				.enabled(CommonConstants.EntityStatus.ENABLED)
+				.locked(CommonConstants.EntityStatus.UNLOCKED)
 				.build();
 		userRepo.save(user);
 	}

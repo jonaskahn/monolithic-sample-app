@@ -14,13 +14,15 @@ import lombok.NoArgsConstructor;
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class JwtAccessToken implements Serializable {
-	private String type;
 
-	private Long accessTokenExpiration;
+	private String type;
 
 	private String accessToken;
 
-	private Long refreshTokenExpiration;
+	private Long accessTokenExpiration;
 
 	private String refreshToken;
+
+	private Long refreshTokenExpiration;
+
 }
