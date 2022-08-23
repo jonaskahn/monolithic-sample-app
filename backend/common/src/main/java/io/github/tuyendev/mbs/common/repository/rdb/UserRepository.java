@@ -21,8 +21,15 @@ public interface UserRepository extends CrudRepository<User, Long> {
 
 	boolean existsUserByUsernameAndStatus(final String username, final Integer status);
 
+	boolean existsUserByEmailAndStatus(final String email, final Integer status);
+
 	default boolean existsActiveUserByUsername(final String username) {
 		return existsUserByUsernameAndStatus(username, CommonConstants.EntityStatus.ACTIVE);
 	}
 
+	default boolean existsActiveUserByEmail(final String email) {
+		return existsUserByEmailAndStatus(email, CommonConstants.EntityStatus.ACTIVE);
+	}
+
+	boolean existsByEmail(final String email);
 }

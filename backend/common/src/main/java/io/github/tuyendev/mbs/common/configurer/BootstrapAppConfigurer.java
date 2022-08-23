@@ -3,6 +3,7 @@ package io.github.tuyendev.mbs.common.configurer;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 
 import io.github.tuyendev.mbs.common.CommonConstants;
 import io.github.tuyendev.mbs.common.entity.rdb.Authority;
@@ -107,6 +108,7 @@ class BootstrapAppConfigurer {
 
 	private void createAdminUserIfNotExist() {
 		if (userRepo.existsActiveUserByUsername(this.adminUsername)) {
+			return;
 		}
 		Role adminRole = roleRepo.findActiveRoleByName(DEFAULT_ROLE_ADMIN)
 				.orElseThrow(() -> new RuntimeException("This should never happen"));
@@ -114,8 +116,9 @@ class BootstrapAppConfigurer {
 				.email(this.adminEmail)
 				.emailVerified(CommonConstants.EntityStatus.VERIFIED)
 				.username(this.adminUsername)
+				.preferredUsername(UUID.randomUUID().toString())
 				.password(passwordEncoder.encode(this.adminPassword))
-				.role(Set.of(adminRole))
+				.roles(Set.of(adminRole))
 				.status(CommonConstants.EntityStatus.ACTIVE)
 				.build();
 		userRepo.save(user);

@@ -4,6 +4,7 @@ package io.github.tuyendev.mbs.common.configurer;
 import io.github.tuyendev.mbs.common.CommonConstants;
 import io.github.tuyendev.mbs.common.security.jwt.JwtSecurityAdapter;
 import io.github.tuyendev.mbs.common.security.jwt.JwtTokenProvider;
+import io.github.tuyendev.mbs.common.security.oauth2.Oauth2JwtAuthenticationConverter;
 import org.zalando.problem.spring.web.advice.security.SecurityProblemSupport;
 
 import org.springframework.context.annotation.Bean;
@@ -19,7 +20,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
-@EnableWebSecurity
+@EnableWebSecurity(debug = true)
 @EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true, jsr250Enabled = true)
 @Import(SecurityProblemSupport.class)
 class DefaultWebSecurityConfigurer {
@@ -27,9 +28,12 @@ class DefaultWebSecurityConfigurer {
 
 	private final JwtTokenProvider tokenProvider;
 
-	public DefaultWebSecurityConfigurer(SecurityProblemSupport problemSupport, JwtTokenProvider tokenProvider) {
+	private final Oauth2JwtAuthenticationConverter oauth2JwtAuthenticationConverter;
+
+	public DefaultWebSecurityConfigurer(SecurityProblemSupport problemSupport, JwtTokenProvider tokenProvider, Oauth2JwtAuthenticationConverter oauth2JwtAuthenticationConverter) {
 		this.problemSupport = problemSupport;
 		this.tokenProvider = tokenProvider;
+		this.oauth2JwtAuthenticationConverter = oauth2JwtAuthenticationConverter;
 	}
 
 	@Bean
@@ -63,7 +67,9 @@ class DefaultWebSecurityConfigurer {
 					.formLogin().disable()
 					.logout().disable()
 					.httpBasic().disable()
-					.apply(securityConfigurerAdapter());
+					.apply(securityConfigurerAdapter())
+				.and()
+					.oauth2ResourceServer(oauth2 -> oauth2.jwt(jwtConfigurer -> jwtConfigurer.jwtAuthenticationConverter(oauth2JwtAuthenticationConverter)));
 		return http.build();
 		// @formatter:on
 	}

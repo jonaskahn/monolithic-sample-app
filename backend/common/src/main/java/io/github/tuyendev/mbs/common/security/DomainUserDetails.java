@@ -2,12 +2,11 @@ package io.github.tuyendev.mbs.common.security;
 
 import java.util.Collection;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import io.github.tuyendev.mbs.common.CommonConstants;
-import io.github.tuyendev.mbs.common.entity.rdb.Role;
 import io.github.tuyendev.mbs.common.entity.rdb.User;
+import one.util.streamex.StreamEx;
 
 import org.springframework.lang.NonNull;
 import org.springframework.security.core.GrantedAuthority;
@@ -27,13 +26,8 @@ public class DomainUserDetails implements UserDetails {
 
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
-		return Optional.of(user)
-				.map(User::getRoles).stream()
-				.flatMap(Collection::stream)
-				.map(Role::getAuthorities)
-				.flatMap(Collection::stream)
-				.map(authority -> new SimpleGrantedAuthority(authority.getName()))
-				.distinct()
+		return StreamEx.of(user.getAuthorities())
+				.map(SimpleGrantedAuthority::new)
 				.collect(Collectors.toList());
 	}
 
