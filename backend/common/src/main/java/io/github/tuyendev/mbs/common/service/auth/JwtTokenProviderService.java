@@ -49,6 +49,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsChecker;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
@@ -60,6 +61,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class JwtTokenProviderService implements JwtTokenProvider {
 
 	private static final ObjectMapper JACKSON_MAPPER;
+
+	private final UserDetailsChecker postCheckUserStatus = new AccountStatusUserDetailsChecker();
 
 	private final JwtParser jwtParser;
 
@@ -92,7 +95,6 @@ public class JwtTokenProviderService implements JwtTokenProvider {
 
 	@Value("${app.common.jwt.remember-me-expiration-in-minutes}")
 	private long rememberMeExpirationInMinutes;
-
 	public JwtTokenProviderService(@Value("${app.common.jwt.secret-key}") String jwtSecretKey,
 			AuthenticationManagerBuilder authenticationManagerBuilder, PasswordEncoder passwordEncoder, SecurityUserInfoProvider securityUserInfoProvider, UserService userService,
 			AccessTokenRepository accessTokenRepo, RefreshTokenRepository refreshTokenRepo, UserRepository userRepo, RoleRepository roleRepo) {
@@ -237,7 +239,7 @@ public class JwtTokenProviderService implements JwtTokenProvider {
 
 	private UserDetails buildPrincipalForRefreshTokenFromUser(final User user, final String jwt) {
 		DomainUserDetails userDetails = new DomainUserDetails(user, jwt);
-		new AccountStatusUserDetailsChecker().check(userDetails);
+		postCheckUserStatus.check(userDetails);
 		return userDetails;
 	}
 
@@ -276,21 +278,28 @@ public class JwtTokenProviderService implements JwtTokenProvider {
 
 
 	@Override
-	public AbstractAuthenticationToken transferOauth2AuthenticationToUsernamePassswordAuthentication(Jwt jwt) {
-		createUserIfNotExist(jwt);
+	public AbstractAuthenticationToken authorizeToken(Jwt jwt) {
+		parseJwtToInternalUser(jwt);
 		UserDetails userDetails = securityUserInfoProvider.getUserInfoByPrincipal(jwt.getClaimAsString("email"));
+		postCheckUserStatus.check(userDetails);
 		return new UsernamePasswordAuthenticationToken(userDetails, jwt, userDetails.getAuthorities());
 	}
 
-	private void createUserIfNotExist(Jwt jwt) {
+	private void parseJwtToInternalUser(Jwt jwt) {
 		final String email = jwt.getClaimAsString("email");
 		if (userRepo.existsByEmail(email)) {
-			return;
+			updateInternalUser(jwt);
 		}
+		else {
+			createInternalUser(jwt);
+		}
+	}
+
+	private void createInternalUser(Jwt jwt) {
 		Role memberRole = roleRepo.findActiveRoleByName(CommonConstants.Role.DEFAULT_ROLE_MEMBER)
 				.orElseThrow(() -> new RuntimeException("This should never happen"));
 		User user = User.builder()
-				.email(email)
+				.email(jwt.getClaimAsString("email"))
 				.emailVerified(CommonConstants.EntityStatus.VERIFIED)
 				.username("openidc_" + jwt.getClaimAsString("preferred_username"))
 				.preferredUsername(UUID.randomUUID().toString())
@@ -303,6 +312,11 @@ public class JwtTokenProviderService implements JwtTokenProvider {
 				.locked(CommonConstants.EntityStatus.UNLOCKED)
 				.build();
 		userRepo.save(user);
+	}
+
+	// Todo update user
+	private void updateInternalUser(Jwt jwt) {
+
 	}
 
 	static {

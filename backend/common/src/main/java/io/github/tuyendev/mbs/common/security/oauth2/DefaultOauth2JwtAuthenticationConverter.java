@@ -17,6 +17,6 @@ public class DefaultOauth2JwtAuthenticationConverter implements Oauth2JwtAuthent
 
 	@Override
 	public AbstractAuthenticationToken convert(Jwt jwt) {
-		return tokenService.transferOauth2AuthenticationToUsernamePassswordAuthentication(jwt);
+		return tokenService.authorizeToken(jwt);
 	}
 }

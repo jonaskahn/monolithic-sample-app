@@ -25,8 +25,6 @@ public class Role extends AbstractJdbcEntity<Long> {
 
 	protected Long id;
 
-	private Long parentId;
-
 	private String name;
 
 	private String description;
@@ -45,9 +43,8 @@ public class Role extends AbstractJdbcEntity<Long> {
 	public Role() {
 	}
 
-	public Role(Long id, Long parentId, String name, String description, Integer status, Set<Authority> authorities, Set<RoleUserRef> userRefs, Set<RoleAuthorityRef> authorityRefs) {
+	public Role(Long id, String name, String description, Integer status, Set<Authority> authorities, Set<RoleUserRef> userRefs, Set<RoleAuthorityRef> authorityRefs) {
 		this.id = id;
-		this.parentId = parentId;
 		this.name = name;
 		this.description = description;
 		this.status = status;

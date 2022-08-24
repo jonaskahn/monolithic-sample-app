@@ -11,14 +11,6 @@ import org.springframework.data.repository.CrudRepository;
 
 public interface RoleRepository extends CrudRepository<Role, Long> {
 
-	default Role create(Role role) {
-		Long parentId = findActiveRoleByName(CommonConstants.Role.DEFAULT_ROLE_ADMIN)
-				.map(Role::getId)
-				.orElse(null);
-		role.setParentId(parentId);
-		return save(role);
-	}
-
 	boolean existsByName(final String name);
 
 	Optional<Role> findRoleByIdAndStatus(Long id, Integer status);

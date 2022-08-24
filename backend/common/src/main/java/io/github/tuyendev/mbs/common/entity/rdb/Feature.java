@@ -28,6 +28,16 @@ public class Feature extends AbstractJdbcEntity<Long> {
 	@MappedCollection(idColumn = "feature_id")
 	private Set<Authority> authorities;
 
+	public Feature() {
+	}
+
+	public Feature(String name, Integer type, String description, Set<Authority> authorities) {
+		this.name = name;
+		this.type = Objects.requireNonNullElse(type, CommonConstants.FeatureType.APP);
+		this.description = description;
+		this.authorities = authorities;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;

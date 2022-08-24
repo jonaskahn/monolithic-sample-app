@@ -35,7 +35,6 @@ class BootstrapAppConfigurer {
 
 	private static final String DEFAULT_ADMIN_PASSWORD = "admin";
 
-
 	private final FeatureRepository featureRepo;
 
 	private final RoleRepository roleRepo;
@@ -98,7 +97,7 @@ class BootstrapAppConfigurer {
 					.authorities(feature.getAuthorities())
 					.status(CommonConstants.EntityStatus.ACTIVE)
 					.build();
-			roleRepo.create(role);
+			roleRepo.save(role);
 		}
 	}
 
