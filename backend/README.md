@@ -128,11 +128,11 @@ APPROVE_CONTRACT*
 
 - In java code, developer can simple using @PreAuthorize or @PostAuthorize to handle access
 
-  	@GetRequest  
-  	@PreAuthorize("hasAuthority('READ_CONTRACT')")  
-  	public Response<String> doSomething() {  
-  	   return Response.ok();  
-  	}
+      @GetRequest  
+      @PreAuthorize("hasAuthority('READ_CONTRACT')")  
+      public Response<String> doSomething() {  
+         return Response.ok();  
+      }
 
 ### Implement
 
