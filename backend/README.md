@@ -165,3 +165,4 @@ APPROVE_CONTRACT*
   		}
 
 - Initial setup at application boot [Sample code](common/src/main/java/io/github/tuyendev/mbs/common/configurer/BootstrapAppConfigurer.java#L140)
+- See the [mockup](../docs/role-strategy.pdf)
