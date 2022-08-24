@@ -1,7 +1,7 @@
 # Let's get started
 
-As a java developer, I spent most of my time to work with Spring Boot - a powered framework. Spring Boot also has many
-configurations that make you confuse, through. I started to create a boilerplate framework for monolithic app to handler
+As a java developer, I spent most of my time working with Spring Boot - a powered framework. Spring Boot also has many
+configurations that make you confused, through. I started to create a boilerplate framework for a monolithic app to handle
 some aspects to get business faster.
 
 Some aspects of this project
@@ -20,12 +20,12 @@ Some aspects of this project
 > **annotation** package
 
 - **api**: Combination annotation of Spring Boot and Springdocs (OpenAPI) for short. For example
-    - ***@RestHandler*** equals ***@RestController*** ***@RequestMapping*** of SpringBoot and ***@Documented***
-      ***@Tag(name = "")*** of SpringDocs
-- **context**: Cause I separated project to smaller modules ( actually we have more than 6 modules in our private
-  business). This is place store some interfaces to get private resource definitions like (MessageSource, Caching,
-  etc...). For example: You can see ***MessageResourceClaim*** interface, each module must to define their own
-  MessageResource, then when app started, message resources will be initial in all modules.
+    - ***@RestHandler*** ***=*** *@RestController* *@RequestMapping* of SpringBoot ***+*** *@Documented*
+      *@Tag(name = "")* of SpringDocs
+- **context**: Cause I separated the project to smaller modules ( actually we have more than 6 modules in our private
+  business). This is a place to store some interfaces to get private resource definitions like (MessageSource, Caching,
+  etc...). For example: You can see ***MessageResourceClaim*** interface, each module must define their own
+  MessageResource, then when the app started, message resources will be initiated in all modules.
 
         // Declare 
         @Modular  
@@ -74,7 +74,7 @@ Some aspects of this project
 
 > **message** package
 
-- **Translator**.eval() help you solve message by multiple languages
+- **Translator**.eval() help you solve message in multiple languages
 
 > **response** package
 
@@ -336,7 +336,7 @@ APPROVE_CONTRACT*
 
 ![Sample in JWT](docs/role-token-sample.png)
 
-- In java code, developer can simple using @PreAuthorize or @PostAuthorize to handle access
+- In java code, the developer can simple use @PreAuthorize or @PostAuthorize to handle access
 
       @GetRequest  
       @PreAuthorize("hasAuthority('READ_CONTRACT')")  
