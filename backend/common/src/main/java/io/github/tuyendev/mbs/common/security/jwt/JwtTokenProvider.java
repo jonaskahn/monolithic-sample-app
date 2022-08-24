@@ -13,5 +13,11 @@ public interface JwtTokenProvider {
 
 	boolean isSelfIssuer(String jwtToken);
 
-	AbstractAuthenticationToken transferOauth2AuthenticationToUsernamePassswordAuthentication(Jwt jwt);
+	/**
+	 * Convert Jwt token to @UsernameAndPasswordAuthenticationToken
+	 *
+	 * @param jwt
+	 * @return
+	 */
+	AbstractAuthenticationToken authorizeToken(Jwt jwt);
 }

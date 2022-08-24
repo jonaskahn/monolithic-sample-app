@@ -60,9 +60,7 @@ CREATE TABLE IF NOT EXISTS
     description VARCHAR(500) NULL,
     NAME VARCHAR(100) NULL,
     STATUS INT(1) NULL,
-    parent_id BIGINT NULL,
-    CONSTRAINT uk_roles_name UNIQUE (NAME),
-    CONSTRAINT fk_roles__roles FOREIGN KEY (parent_id) REFERENCES roles (id)
+    CONSTRAINT uk_roles_name UNIQUE (NAME)
     );
 
 CREATE TABLE IF NOT EXISTS role_authorities

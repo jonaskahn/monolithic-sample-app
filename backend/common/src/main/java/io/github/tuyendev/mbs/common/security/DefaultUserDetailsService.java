@@ -17,7 +17,6 @@ public class DefaultUserDetailsService implements UserDetailsService {
 		this.securityUserInfoProvider = securityUserInfoProvider;
 	}
 
-
 	@Override
 	public UserDetails loadUserByUsername(String principal) throws UsernameNotFoundException {
 		log.debug("authenticating {}", principal);
