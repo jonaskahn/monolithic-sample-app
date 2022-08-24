@@ -42,7 +42,7 @@ services:
     hostname: redis
     restart: unless-stopped
     ports:
-      - 26379:6379
+      - 6379:6379
     environment:
       - REDIS_PASSWORD=development
     volumes:
