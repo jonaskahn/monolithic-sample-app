@@ -160,7 +160,85 @@ sequenceDiagram
     end
 ```
 ### Implementation
+- Create [**JwtTokenAuthenticationFilter**](common/src/main/java/io/github/tuyendev/mbs/common/security/jwt/JwtTokenAuthenticationFilter.java) and register with [**SecurityFilterChain**](common/src/main/java/io/github/tuyendev/mbs/common/configurer/DefaultWebSecurityConfigurer.java#L43)
 
+        @EnableWebSecurity
+        @EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true, jsr250Enabled = true)
+        class DefaultWebSecurityConfigurer {
+            ...
+
+            @Bean
+            public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+                // @formatter:off
+                ...
+                http.formLogin().disable()
+                        .logout().disable()
+                        .httpBasic().disable()
+                (***)   .apply(securityConfigurerAdapter());
+                ...
+                http.exceptionHandling()
+                        .authenticationEntryPoint(new DefaultAuthenticationEntryPoint(resolver));
+                return http.build();
+                // @formatter:on
+            }
+
+            private JwtSecurityAdapter (***)securityConfigurerAdapter()  {
+                return new ($$$)JwtSecurityAdapter(tokenProvider, new DefaultAuthenticationEntryPoint(resolver));
+            }
+        }
+
+
+        public class ($$$)JwtSecurityAdapter extends SecurityConfigurerAdapter<DefaultSecurityFilterChain, HttpSecurity> {   
+            ....
+            @Override
+            public void configure(HttpSecurity http) {
+                http.addFilterBefore(new (@@@)JwtTokenAuthenticationFilter(tokenProvider, authenticationEntryPoint), UsernamePasswordAuthenticationFilter.class);
+            }
+        }
+
+
+        public class (@@@)JwtTokenAuthenticationFilter extends GenericFilterBean {
+
+            ...
+
+            @Override
+            public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+                doFilterInternal(request, response, chain);
+            }
+
+            private void doFilterInternal(ServletRequest request, ServletResponse response, FilterChain chain) throws ServletException, IOException {
+                HttpServletRequest httpServletRequest = (HttpServletRequest) request;
+                String jwt = resolveToken(httpServletRequest);
+                if (StringUtils.hasText(jwt) && tokenProvider.isSelfIssuer(jwt)) {
+                    try {
+                        this.tokenProvider.authorizeToken(jwt);
+                        chain.doFilter(new HiddenTokenRequestWrapper((HttpServletRequest) request), response);
+                    }
+                    catch (AuthenticationException e) {
+                        SecurityContextHolder.clearContext();
+                        this.logger.trace("Failed to process authentication request", e);
+                        this.authenticationEntryPoint.commence((HttpServletRequest) request, (HttpServletResponse) response, e);
+                    }
+                }
+                else {
+                    chain.doFilter(request, response);
+                }
+            }
+
+            private String resolveToken(HttpServletRequest request) {
+                String bearerToken = request.getHeader(AUTHORIZATION_HEADER);
+                if (StringUtils.hasText(bearerToken) && bearerToken.startsWith(BEARER_TOKEN_PREFIX)) {
+                    return bearerToken.substring(7);
+                }
+                return null;
+            }
+            ...
+        }
+
+> Note: Cause JWT Filter and Oauth2 Filter both consume Bearer Token, if a token is valid with JWT Filter flow, the Bearer Token will be removed (hidden) before run next filter
+> .That why we create [HiddenTokenRequestWrapper](common/src/main/java/io/github/tuyendev/mbs/common/security/jwt/JwtTokenAuthenticationFilter.java#L72) to hide token data
+
+        chain.doFilter(new HiddenTokenRequestWrapper((HttpServletRequest) request), response);
 ## Authentication as  Oauth2 resource server
 ```mermaid {code_block=true}
 sequenceDiagram
@@ -197,6 +275,25 @@ sequenceDiagram
       end
     end
 ```
+### Implementation
+Add Oauth2 Server Config
+
+      spring.security.oauth2.resourceserver.jwt.issuer-uri=http://localhost:8882/realms/monolithic
+      spring.security.oauth2.resourceserver.jwt.jwk-set-uri=http://localhost:8882/realms/monolithic/protocol/openid-connect/certs
+
+Register [Oauth2JwtAuthenticationConverter]() and update configuration in  [**SecurityFilterChain**](TODO-ADD-LINK)
+
+        @Bean
+        public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+            // @formatter:off
+            ...
+            http.oauth2ResourceServer(oauth2 ->
+                                oauth2.jwt(jwtConfigurer -> jwtConfigurer.jwtAuthenticationConverter(oauth2JwtAuthenticationConverter)));
+            ...
+            return http.build();
+            // @formatter:on
+        }
+
 ## Role Strategy
 ### Explanation
 
@@ -205,7 +302,7 @@ sequenceDiagram
 - Each **Module** treated as **Feature** table in database. Feature/Module has each own pre-defined
   privileges/authorities can be
   configurable by implement
-  interface [FeaturePrivilegeClaim](https://github.com/tuyendev/monolithic-sample-app/blob/dev/backend/common/src/main/java/io/github/tuyendev/mbs/common/annotation/context/FeaturePrivilegeClaim.java)
+  interface [FeaturePrivilegeClaim](common/src/main/java/io/github/tuyendev/mbs/common/annotation/context/FeaturePrivilegeClaim.java)
 
   		public interface FeaturePrivilegeClaim {  
   		  
@@ -247,9 +344,8 @@ APPROVE_CONTRACT*
          return Response.ok();  
       }
 
-### Implement
-
-- Implementation **FeaturePrivilegeClaim** interface
+### Implementation
+- Implement **FeaturePrivilegeClaim** interface
 
   		@Modular  
   		@PropertySource({"classpath:common00.properties"})  
@@ -276,5 +372,5 @@ APPROVE_CONTRACT*
   		}
 
 - Initial setup at application
-  boot [Sample code](https://github.com/tuyendev/monolithic-sample-app/blob/dev/backend/common/src/main/java/io/github/tuyendev/mbs/common/configurer/BootstrapAppConfigurer.java#L140)
+  boot [Sample code](common/src/main/java/io/github/tuyendev/mbs/common/configurer/BootstrapAppConfigurer.java#L140)
 - See the [mockup](../docs/role-strategy.pdf)
