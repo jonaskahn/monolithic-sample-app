@@ -94,7 +94,7 @@ Some aspects of this project
 ![Role Schema](docs/role-schema.png)
 
 - Each **Module** treated as **Feature** table in database. Feature/Module has each own pre-defined privileges/authorities can be
-  configurable by implement interface [FeaturePrivilegeClaim](/common/src/main/java/io/github/tuyendev/mbs/common/annotation/context/FeaturePrivilegeClaim.java)
+  configurable by implement interface [FeaturePrivilegeClaim](https://github.com/tuyendev/monolithic-sample-app/blob/dev/backend/common/src/main/java/io/github/tuyendev/mbs/common/annotation/context/FeaturePrivilegeClaim.java)
 
   		public interface FeaturePrivilegeClaim {  
   		  
@@ -164,5 +164,5 @@ APPROVE_CONTRACT*
   		   }  
   		}
 
-- Initial setup at application boot [Sample code](common/src/main/java/io/github/tuyendev/mbs/common/configurer/BootstrapAppConfigurer.java#L140)
+- Initial setup at application boot [Sample code](https://github.com/tuyendev/monolithic-sample-app/blob/dev/backend/common/src/main/java/io/github/tuyendev/mbs/common/configurer/BootstrapAppConfigurer.java#L140)
 - See the [mockup](../docs/role-strategy.pdf)
