@@ -162,4 +162,4 @@ APPROVE_CONTRACT*
   		   }  
   		}
 
-- Initial setup at application boot [Sample code](aaa)
+- Initial setup at application boot [Sample code](https://github.com/tuyendev/monolithic-sample-app/blob/dev/backend/common/src/main/java/io/github/tuyendev/mbs/common/configurer/BootstrapAppConfigurer.java#L140)
