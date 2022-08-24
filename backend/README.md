@@ -93,7 +93,7 @@ Some aspects of this project
 
 ![Role Schema](docs/role-schema.png)
 
-- Each **Module** treated as **Feature** table in database. Feature/Module has each own pre-defined privileges can be
+- Each **Module** treated as **Feature** table in database. Feature/Module has each own pre-defined privileges/authorities can be
   configurable by implement interface [FeaturePrivilegeClaim](/common/src/main/java/io/github/tuyendev/mbs/common/annotation/context/FeaturePrivilegeClaim.java)
 
   		public interface FeaturePrivilegeClaim {  
