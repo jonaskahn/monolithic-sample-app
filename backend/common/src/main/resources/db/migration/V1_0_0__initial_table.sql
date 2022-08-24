@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS
     domain VARCHAR(100) NULL,
     email VARCHAR(80) NULL,
     NAME VARCHAR(100) NULL,
-    STATUS INT(1) NULL
+    STATUS INT(1) NOT NULL
     );
 
 CREATE TABLE IF NOT EXISTS features
@@ -42,9 +42,11 @@ CREATE TABLE IF NOT EXISTS authorities
     last_modified_by   varchar(255) null,
     last_modified_date datetime(6)  null,
     description        varchar(500) null,
-    name               varchar(100) null,
-    status             int(1)       null,
+    name               varchar(100) not null,
+    status             int(1)       not null,
     feature_id         bigint       not null,
+    constraint authorities_name_uindex
+    unique (name),
     constraint authorities_features_id_fk
         foreign key (feature_id) references features (id)
 );
@@ -59,7 +61,7 @@ CREATE TABLE IF NOT EXISTS
     last_modified_date DATETIME(6) NULL,
     description VARCHAR(500) NULL,
     NAME VARCHAR(100) NULL,
-    STATUS INT(1) NULL,
+    STATUS INT(1) NOT NULL,
     CONSTRAINT uk_roles_name UNIQUE (NAME)
     );
 
@@ -129,7 +131,7 @@ CREATE TABLE IF NOT EXISTS
                       id VARCHAR(255) NOT NULL PRIMARY KEY,
                       user_id BIGINT NOT NULL,
                       expired_at DATETIME(6) NULL,
-                      STATUS INT(1) NULL,
+                      STATUS INT(1) NOT NULL,
                       CONSTRAINT fk_access_tokens__users FOREIGN KEY (user_id) REFERENCES users (id)
 );
 
@@ -138,6 +140,6 @@ CREATE TABLE IF NOT EXISTS
                        id VARCHAR(255) NOT NULL PRIMARY KEY,
                        access_token_id VARCHAR(255) NOT NULL,
                        expired_at DATETIME(6) NULL,
-                       STATUS INT(1) NULL,
+                       STATUS INT(1) NOT NULL,
                        CONSTRAINT fk_refresh_tokens__access_tokens FOREIGN KEY (access_token_id) REFERENCES access_tokens (id)
 );

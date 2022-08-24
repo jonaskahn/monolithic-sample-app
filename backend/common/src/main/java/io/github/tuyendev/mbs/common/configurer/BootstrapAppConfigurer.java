@@ -1,15 +1,20 @@
 package io.github.tuyendev.mbs.common.configurer;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
 
 import io.github.tuyendev.mbs.common.CommonConstants;
+import io.github.tuyendev.mbs.common.annotation.context.FeaturePrivilegeClaim;
 import io.github.tuyendev.mbs.common.entity.rdb.Authority;
 import io.github.tuyendev.mbs.common.entity.rdb.Feature;
 import io.github.tuyendev.mbs.common.entity.rdb.Role;
 import io.github.tuyendev.mbs.common.entity.rdb.User;
+import io.github.tuyendev.mbs.common.repository.rdb.AuthorityRepository;
 import io.github.tuyendev.mbs.common.repository.rdb.FeatureRepository;
 import io.github.tuyendev.mbs.common.repository.rdb.RoleRepository;
 import io.github.tuyendev.mbs.common.repository.rdb.UserRepository;
@@ -37,6 +42,8 @@ class BootstrapAppConfigurer {
 
 	private final FeatureRepository featureRepo;
 
+	private final AuthorityRepository authorityRepo;
+
 	private final RoleRepository roleRepo;
 
 	private final UserRepository userRepo;
@@ -49,11 +56,16 @@ class BootstrapAppConfigurer {
 
 	private final String adminPassword;
 
-	BootstrapAppConfigurer(FeatureRepository featureRepo, RoleRepository roleRepo, UserRepository userRepo, PasswordEncoder passwordEncoder) {
+	private final List<FeaturePrivilegeClaim> privilegeClaims;
+
+	BootstrapAppConfigurer(FeatureRepository featureRepo, AuthorityRepository authorityRepo, RoleRepository roleRepo, UserRepository userRepo,
+			PasswordEncoder passwordEncoder, List<FeaturePrivilegeClaim> privilegeClaims) {
 		this.featureRepo = featureRepo;
+		this.authorityRepo = authorityRepo;
 		this.roleRepo = roleRepo;
 		this.userRepo = userRepo;
 		this.passwordEncoder = passwordEncoder;
+		this.privilegeClaims = privilegeClaims;
 		this.adminUsername = DEFAULT_ADMIN_USERNAME;
 		this.adminEmail = Objects.requireNonNullElse(System.getenv("DEFAULT_ADMIN_EMAIL"), DEFAULT_ADMIN_EMAIL);
 		this.adminPassword = Objects.requireNonNullElse(System.getenv("DEFAULT_ADMIN_PASSWORD"), DEFAULT_ADMIN_PASSWORD);
@@ -65,6 +77,7 @@ class BootstrapAppConfigurer {
 		createAdminFeatureAndRoleIfNotExist();
 		createMemberFeatureAndRoleIfNotExist();
 		createAdminUserIfNotExist();
+		updateFeaturePrivileges();
 	}
 
 	private void createAdminFeatureAndRoleIfNotExist() {
@@ -122,5 +135,71 @@ class BootstrapAppConfigurer {
 				.locked(CommonConstants.EntityStatus.UNLOCKED)
 				.build();
 		userRepo.save(user);
+	}
+
+	private void updateFeaturePrivileges() {
+		privilegeClaims.forEach(this::createOrUpdateFeaturePrivilege);
+	}
+
+	private void createOrUpdateFeaturePrivilege(FeaturePrivilegeClaim claim) {
+		final String name = claim.getName();
+		if (featureRepo.existsByName(name)) {
+			updateFeature(claim);
+		}
+		else createFeature(claim);
+	}
+
+	private void createFeature(FeaturePrivilegeClaim claim) {
+		Set<Authority> authorities = new HashSet<>();
+		claim.getPrivileges().forEach((name, desc) -> {
+			authorities.add(Authority.builder()
+					.name(name)
+					.description(desc)
+					.status(CommonConstants.EntityStatus.ACTIVE)
+					.build()
+			);
+		});
+		Feature feature = Feature.builder()
+				.name(claim.getName())
+				.description(claim.getDescription())
+				.type(CommonConstants.FeatureType.APP)
+				.authorities(authorities)
+				.build();
+		featureRepo.saveOrUpdate(feature);
+	}
+
+	private void updateFeature(FeaturePrivilegeClaim claim) {
+		Feature feature = featureRepo.findFeatureByName(claim.getName())
+				.orElseThrow(() -> new RuntimeException("This should never happen"));
+		Map<String, Authority> existedAuthorities = StreamEx.of(authorityRepo.findAllByFeatureId(feature.getId()))
+				.toMap(Authority::getName, Function.identity());
+		existedAuthorities.forEach((name, auth) -> auth.setStatus(CommonConstants.EntityStatus.INACTIVE));
+		Map<String, String> authorities = claim.getPrivileges();
+		Set<Authority> newAuthorities = new HashSet<>();
+
+		for (Map.Entry<String, String> entry : authorities.entrySet()) {
+			final String name = entry.getKey();
+			final String desc = entry.getValue();
+			Authority authority = existedAuthorities.get(name);
+			if (Objects.nonNull(authority)) {
+				authority.setStatus(CommonConstants.EntityStatus.ACTIVE);
+				authority.setDescription(desc);
+				authority.setStatus(CommonConstants.EntityStatus.ACTIVE);
+				existedAuthorities.remove(name);
+			}
+			else {
+				authority = Authority.builder()
+						.featureId(feature.getId())
+						.name(name)
+						.description(desc)
+						.status(CommonConstants.EntityStatus.ACTIVE)
+						.build();
+			}
+			newAuthorities.add(authority);
+		}
+		newAuthorities.addAll(existedAuthorities.values());
+		feature.setDescription(claim.getDescription());
+		feature.setAuthorities(newAuthorities);
+		featureRepo.saveOrUpdate(feature);
 	}
 }
