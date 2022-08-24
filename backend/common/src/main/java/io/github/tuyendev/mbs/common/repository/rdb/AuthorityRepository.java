@@ -12,6 +12,8 @@ public interface AuthorityRepository extends CrudRepository<Authority, Long> {
 
 	Set<Authority> findAllByIdInAndStatus(final Collection<Long> ids, final Integer status);
 
+	Set<Authority> findAllByFeatureId(final Long featureId);
+
 	default Set<Authority> findAllActiveByIdIn(final Collection<Long> ids) {
 		return findAllByIdInAndStatus(ids, CommonConstants.EntityStatus.ACTIVE);
 	}
