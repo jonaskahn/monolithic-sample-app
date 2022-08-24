@@ -78,8 +78,7 @@ Some aspects of this project
 
 > **response** package
 
-- Contain Response template builder for error and success, response always container **status**, **metadata**, **
-  payload**
+- Contain Response template builder for error and success, response always container **status**, **metadata**, **payload**
 
         // Error response sample
         {
