@@ -9,7 +9,8 @@ Some aspects of this project
 - [x] Refined ReST response with understood JSON structure.
 - [ ] Metrics integration
 
-## Project structure
+## Structure
+![Package](docs/img.png)
 #### COMMON MODULE -  settings, configurations for project
 > **annotation** package
 - **api**: Combination annotation of Spring Boot and Springdocs (OpenAPI) for short. For example
@@ -76,7 +77,7 @@ Some aspects of this project
 
 #### CORE MODULE - implement your business
 > Implementation of business logic
-### Project Model
+## PROJECT MODEL
 
 
 ## Authentication With JWT
