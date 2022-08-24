@@ -94,7 +94,7 @@ Some aspects of this project
 ![Role Schema](docs/role-schema.png)
 
 - Each **Module** treated as **Feature** table in database. Feature/Module has each own pre-defined privileges can be
-  configurable by implement interface FeaturePrivilegeClaim
+  configurable by implement interface [FeaturePrivilegeClaim](https://github.com/tuyendev/monolithic-sample-app/blob/dev/backend/common/src/main/java/io/github/tuyendev/mbs/common/annotation/context/MessageResourceClaim.java)
 
   		public interface FeaturePrivilegeClaim {  
   		  
