@@ -160,7 +160,7 @@ sequenceDiagram
     end
 ```
 ### Implementation
-- Create [**JwtTokenAuthenticationFilter**](common/src/main/java/io/github/tuyendev/mbs/common/security/jwt/JwtTokenAuthenticationFilter.java) and register with [**SecurityFilterChain**](common/src/main/java/io/github/tuyendev/mbs/common/configurer/DefaultWebSecurityConfigurer.java#L43)
+- Create [**JwtTokenAuthenticationFilter**](common/src/main/java/io/github/tuyendev/mbs/common/security/jwt/JwtTokenAuthenticationFilter.java) and register with [**SecurityFilterChain**](common/src/main/java/io/github/tuyendev/mbs/common/configurer/DefaultWebSecurityConfigurer.java#L67)
 
         @EnableWebSecurity
         @EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true, jsr250Enabled = true)
@@ -281,7 +281,7 @@ Add Oauth2 Server Config
       spring.security.oauth2.resourceserver.jwt.issuer-uri=http://localhost:8882/realms/monolithic
       spring.security.oauth2.resourceserver.jwt.jwk-set-uri=http://localhost:8882/realms/monolithic/protocol/openid-connect/certs
 
-Register [Oauth2JwtAuthenticationConverter]() and update configuration in  [**SecurityFilterChain**](TODO-ADD-LINK)
+Register [Oauth2JwtAuthenticationConverter](common/src/main/java/io/github/tuyendev/mbs/common/security/oauth2/DefaultOauth2JwtAuthenticationConverter.java) and update configuration in  [**SecurityFilterChain**](common/src/main/java/io/github/tuyendev/mbs/common/configurer/DefaultWebSecurityConfigurer.java#L68)
 
         @Bean
         public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
