@@ -10,7 +10,7 @@ Some aspects of this project
 - [ ] Metrics integration
 
 ## Structure
-![Package](docs/img.png)
+![Package](docs/structure.png)
 #### COMMON MODULE -  settings, configurations for project
 > **annotation** package
 - **api**: Combination annotation of Spring Boot and Springdocs (OpenAPI) for short. For example
@@ -76,12 +76,90 @@ Some aspects of this project
         }
 
 #### CORE MODULE - implement your business
+
 > Implementation of business logic
+
 ## PROJECT MODEL
 
+![Schema](docs/schema.png)
 
 ## Authentication With JWT
 
 ## Authentication as  Oauth2 resource server
 
 ## Role Strategy
+
+### Explanation
+
+![Role Schema](docs/role-schema.png)
+
+- Each **Module** treated as **Feature** table in database. Feature/Module has each own pre-defined privileges can be
+  configurable by implement interface FeaturePrivilegeClaim
+
+  		public interface FeaturePrivilegeClaim {  
+  		  
+  		  /**  
+  		  * Not changeable field, change name will cause problems to running app * @return  
+  		  */  
+  		  String getName();  
+  		  
+  		  /**  
+  			* A changeable field, can be updated to re-initial * @return  
+  		  */  
+  		  String getDescription();  
+  		  
+  		  /**  
+  		  * A changeable field, can be updated to re-initial * @return
+  		  * Privileges presented by a map that contain (name as key, description as value)
+  		  * The name of each Privilege should be unique in the whole system.
+  		  */  
+  		  Map<String, String> getPrivileges();  
+  		}
+
+Example: Feature **SALE** included *READ_REPORT, CREATE_REPORT, READ_CONTRACT, CREATE_CONTRACT, DELETE_CONTRACT,
+APPROVE_CONTRACT*
+
+- Role is groups of Authority. For example, we can have **SALE_VIEWER_ROLE** with authorities *READ_REPORT &
+  READ_CONTRACT* or **SALE_MAKER_ROLE** included *READ_REPORT, CREATE_CONTRACT, DELETE_CONTRACT*.
+- Each *User* can define mutiple *Role*-s. When a user do login, or access by token, all associate authorities will be
+  added automatically.
+
+![Sample in JWT](docs/role-token-sample.png)
+
+- In java code, developer can simple using @PreAuthorize or @PostAuthorize to handle access
+
+  	@GetRequest  
+  	@PreAuthorize("hasAuthority('READ_CONTRACT')")  
+  	public Response<String> doSomething() {  
+  	   return Response.ok();  
+  	}
+
+### Implement
+
+- Implementation **FeaturePrivilegeClaim** interface
+
+  		@Modular  
+  		@PropertySource({"classpath:common00.properties"})  
+  		public class CommonModular implements MessageResourceClaim, FeaturePrivilegeClaim {  
+  		   @Override  
+  		  public String[] messageSource() {  
+  		      return new String[] {"classpath:common-messages"};  
+  		   }  
+  		  
+  		   @Override  
+  		  public String getName() {  
+  		      return "COMMON";  
+  		   }  
+  		  
+  		   @Override  
+  		  public String getDescription() {  
+  		      return "Access to common resource";  
+  		   }  
+  		  
+  		   @Override  
+  		  public Map<String, String> getPrivileges() {  
+  		      return Map.of("COMMON_READ", "app.common.message.privilege.read");  
+  		   }  
+  		}
+
+- Initial setup at application boot [Sample code](aaa)

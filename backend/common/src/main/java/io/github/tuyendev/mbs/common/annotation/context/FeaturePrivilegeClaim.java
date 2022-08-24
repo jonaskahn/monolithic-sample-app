@@ -17,7 +17,9 @@ public interface FeaturePrivilegeClaim {
 	String getDescription();
 
 	/**
-	 * A changeable field, can be updated to re-initial
+	 * A changeable field, can be updated to re-initial.
+	 * Privileges presented by a map that contain (name as key, description as value)
+	 * The name of each Privilege should be unique in the whole system.
 	 * @return
 	 */
 	Map<String, String> getPrivileges();
