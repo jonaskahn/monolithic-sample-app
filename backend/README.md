@@ -1,6 +1,8 @@
 # Let's get started
 
-As a java developer, I spent most of my time to work with Spring Boot - a powered framework. Spring Boot also has many configurations that make you confuse, through. I started to create a boilerplate framework for monolithic app to handler some aspects to get business faster.
+As a java developer, I spent most of my time to work with Spring Boot - a powered framework. Spring Boot also has many
+configurations that make you confuse, through. I started to create a boilerplate framework for monolithic app to handler
+some aspects to get business faster.
 
 Some aspects of this project
 
@@ -10,13 +12,20 @@ Some aspects of this project
 - [ ] Metrics integration
 
 ## Structure
+
 ![Package](docs/structure.png)
-#### COMMON MODULE -  settings, configurations for project
+
+#### COMMON MODULE - settings, configurations for project
+
 > **annotation** package
+
 - **api**: Combination annotation of Spring Boot and Springdocs (OpenAPI) for short. For example
-  - ***@RestHandler*** equals ***@RestController*** ***@RequestMapping*** of SpringBoot and ***@Documented***
-    ***@Tag(name = "")*** of SpringDocs
-- **context**: Cause I separated project to smaller modules ( actually we have more than 6 modules in our private business). This is place store some interfaces to get private resource definitions like (MessageSource, Caching, etc...). For example: You can see ***MessageResourceClaim*** interface,  each module must to define their own MessageResource, then when app started, message resources will be initial in all modules.
+    - ***@RestHandler*** equals ***@RestController*** ***@RequestMapping*** of SpringBoot and ***@Documented***
+      ***@Tag(name = "")*** of SpringDocs
+- **context**: Cause I separated project to smaller modules ( actually we have more than 6 modules in our private
+  business). This is place store some interfaces to get private resource definitions like (MessageSource, Caching,
+  etc...). For example: You can see ***MessageResourceClaim*** interface, each module must to define their own
+  MessageResource, then when app started, message resources will be initial in all modules.
 
         // Declare 
         @Modular  
@@ -49,17 +58,28 @@ Some aspects of this project
             return messageSource;  
            }  
         }
+
 > **configurer** package
-- ***AuthenticationProviderConfigurer***: Initial *PasswordEncoder* and *UserDetailsService* for self JWT authentication flow
+
+- ***AuthenticationProviderConfigurer***: Initial *PasswordEncoder* and *UserDetailsService* for self JWT authentication
+  flow
 - ***BootstrapAppConfigurer***: Initial default ADMIN user and role (ADMIN, MEMBER)
-- ***DatabaseAccessConfigurer***: Initial Spring data configuration for (Jdbc and MongoDB) - Can be changed to JPA (but I hated JPA)
+- ***DatabaseAccessConfigurer***: Initial Spring data configuration for (Jdbc and MongoDB) - Can be changed to JPA (but
+  I hated JPA)
 - ***DefaultWebSecurityConfigurer***: Configure web security for cors, jwt, oauth2 resource server
+
 > **entity** package
+
 - Project is built for MariaDB (**rdb** package) and MongoDB (**mongodb** package)
+
 > **message** package
+
 - **Translator**.eval() help you solve message by multiple languages
+
 > **response** package
-- Contain Response template builder for error and success,  response always container **status**, **metadata**, **payload**
+
+- Contain Response template builder for error and success, response always container **status**, **metadata**, **
+  payload**
 
         // Error response sample
         {
@@ -80,21 +100,112 @@ Some aspects of this project
 > Implementation of business logic
 
 ## PROJECT MODEL
-
 ![Schema](docs/schema.png)
 
+## [Take a look on Spring Security](https://docs.spring.io/spring-security/reference/servlet/architecture.html)
+
 ## Authentication With JWT
+![Model](docs/jwt-model.png)
+
+**Generate Token**
+```mermaid {code_block=true}
+sequenceDiagram
+    autonumber
+    actor Client
+    participant App
+    participant Database
+    Client->>+App: Sent login data
+    Note left of Client: username: username or email<br/>password: is presented<br/>rememberMe: true or false
+    App->>App: Run spring authentication flow
+    alt wrong user/password
+      App-->>Client: Sent error response
+    else valid user/password
+      App->>App: generate AccessToken, RefreshToken
+      App->>-Database: save AccessToken and RefreshToken
+    end
+    App-->>Client: Send JWT token
+```
+**Using Token To Access Resource**
+```mermaid {code_block=true}
+sequenceDiagram
+    autonumber
+    actor Client
+    participant App
+    participant Database
+    Client->>+App: Access to resoure /userinfo
+    Note left of App: Send JWT Token<br/>(Bearer Type)
+    opt JWT Authentication Filter
+      App->>App: Check if token is self<br/> issued by server
+      alt self issued
+        App-->>Database: Check if JWT Token existed
+        Database->>App: Send back AccessToken Entity
+        alt token is inactive
+          App-->>Client: Send error response
+        else token still active
+          App-->>Database: Get current User data
+          Database->>App: Send User Entity
+          App->>App: Build UserDetails
+          Note right of App: User data and<br/> authorities
+          App->>App: Check UserDetails status
+          alt UserDetails in valid
+            App-->>Client: Send error response
+          else UserDetails valid
+            App->>App: Call Controller /userinfo<br/>to get data
+            App-->>Client: Send data 
+          end
+        end
+      else issued 3rd Outh2Server
+        App->>App: Next<br/> Oauth2 Authentication Filter
+      end
+    end
+```
+### Implementation
 
 ## Authentication as  Oauth2 resource server
-
+```mermaid {code_block=true}
+sequenceDiagram
+    autonumber
+    actor Client
+    participant App
+    participant Database
+    Client->>+App: Access to resoure /userinfo
+    Note left of App: Send JWT Token<br/>(Bearer Type)
+    alt JWT Authentication Filter
+      App->>App: Run JWT Authentication Filter
+      App-->>Client: Send response
+    else Oauth2 Authentication Filter
+      App-->>App: Check if token is valid
+      alt Token is invalid
+        Note right of App: Token wrong format<br>expired, etc.
+        App-->>Client: Send error response
+      else Token is valid
+        opt Convert Oauth2 Token
+          App-->>App: Extract emal from Token
+          App->>Database: Find user<br/> by email
+          Database-->>App: Send User Entity
+          App->>Database: Create or Update user
+          App->>App: Convert Oauth2 JWT to UserDetails
+          opt Check UserDetails status
+            alt invalid
+              App-->>Client: Send error response
+            else valid
+              App->>App:Call Controller /userinfo<br/>to get data
+              App-->>Client: Send data
+            end
+          end
+        end 
+      end
+    end
+```
 ## Role Strategy
-
 ### Explanation
 
 ![Role Schema](docs/role-schema.png)
 
-- Each **Module** treated as **Feature** table in database. Feature/Module has each own pre-defined privileges/authorities can be
-  configurable by implement interface [FeaturePrivilegeClaim](https://github.com/tuyendev/monolithic-sample-app/blob/dev/backend/common/src/main/java/io/github/tuyendev/mbs/common/annotation/context/FeaturePrivilegeClaim.java)
+- Each **Module** treated as **Feature** table in database. Feature/Module has each own pre-defined
+  privileges/authorities can be
+  configurable by implement
+  interface [FeaturePrivilegeClaim](https://github.com/tuyendev/monolithic-sample-app/blob/dev/backend/common/src/main/java/io/github/tuyendev/mbs/common/annotation/context/FeaturePrivilegeClaim.java)
 
   		public interface FeaturePrivilegeClaim {  
   		  
@@ -164,5 +275,6 @@ APPROVE_CONTRACT*
   		   }  
   		}
 
-- Initial setup at application boot [Sample code](https://github.com/tuyendev/monolithic-sample-app/blob/dev/backend/common/src/main/java/io/github/tuyendev/mbs/common/configurer/BootstrapAppConfigurer.java#L140)
+- Initial setup at application
+  boot [Sample code](https://github.com/tuyendev/monolithic-sample-app/blob/dev/backend/common/src/main/java/io/github/tuyendev/mbs/common/configurer/BootstrapAppConfigurer.java#L140)
 - See the [mockup](../docs/role-strategy.pdf)
