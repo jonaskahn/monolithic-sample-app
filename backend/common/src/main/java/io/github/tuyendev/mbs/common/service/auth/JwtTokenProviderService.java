@@ -125,7 +125,7 @@ public class JwtTokenProviderService implements JwtTokenProvider {
 				.orElseThrow(() -> new RuntimeException("This should never happen since the authentication is completed before."));
 		final Date issuedAt = new Date();
 		AccessToken accessToken = createAccessToken(currentUser, issuedAt, rememberMe);
-		RefreshToken refreshToken = createRefreshToken(accessToken.getId(), issuedAt, rememberMe);
+		RefreshToken refreshToken = createRefreshToken(accessToken, issuedAt, rememberMe);
 		accessToken.setRefreshToken(refreshToken);
 		accessTokenRepo.save(accessToken);
 		return createJwtAccessToken(accessToken.getToken(), refreshToken.getToken(),
@@ -152,6 +152,7 @@ public class JwtTokenProviderService implements JwtTokenProvider {
 				.token(token)
 				.expiredAt(DateUtils.dateToLocalDateTime(expiration))
 				.status(CommonConstants.EntityStatus.ACTIVE)
+				.newEntity()
 				.build();
 	}
 
@@ -159,14 +160,14 @@ public class JwtTokenProviderService implements JwtTokenProvider {
 		return new Date(issuedAt.getTime() + (rememberMe ? (defaultExpiration + rememberMeExpirationInMinutes) : defaultExpiration) * 1000 * 60);
 	}
 
-	private RefreshToken createRefreshToken(final String accessTokenId, Date issuedAt, boolean rememberMe) {
+	private RefreshToken createRefreshToken(AccessToken accessToken, Date issuedAt, boolean rememberMe) {
 		Date expiration = getExpirationDate(issuedAt, refreshTokenExpirationInMinutes, rememberMe);
 		final String id = UUID.randomUUID().toString();
 		final String token = Jwts.builder()
 				.setIssuer(issuer)
 				.setId(id)
 				.setAudience(CommonConstants.TokenAudience.REFRESH_TOKEN)
-				.setSubject(accessTokenId)
+				.setSubject(accessToken.getId())
 				.setIssuedAt(issuedAt)
 				.setNotBefore(issuedAt)
 				.setExpiration(expiration)
@@ -174,9 +175,11 @@ public class JwtTokenProviderService implements JwtTokenProvider {
 				.compact();
 		return RefreshToken.builder()
 				.id(id)
+				.userId(accessToken.getUserId())
 				.status(CommonConstants.EntityStatus.ACTIVE)
 				.expiredAt(DateUtils.dateToLocalDateTime(expiration))
 				.token(token)
+				.newEntity()
 				.build();
 	}
 
@@ -201,15 +204,13 @@ public class JwtTokenProviderService implements JwtTokenProvider {
 		if (!Objects.equals(claims.getAudience(), CommonConstants.TokenAudience.REFRESH_TOKEN)) {
 			throw new InvalidAudienceTokenException();
 		}
-		if (!refreshTokenRepo.existsRefreshTokenByIdAndStatus(claims.getId())) {
-			throw new RevokedJwtTokenException();
+		RefreshToken refreshToken = refreshTokenRepo.findActiveRefreshTokenBy(claims.getId())
+				.orElseThrow(RevokedJwtTokenException::new);
+		if (!Objects.equals(refreshToken.getAccessTokenId(), claims.getSubject())) {
+			throw new InvalidJwtTokenException();
 		}
-		AccessToken accessToken = accessTokenRepo.findActiveAccessTokenById(claims.getSubject()).
-				orElseThrow(RevokedJwtTokenException::new);
-		accessToken.setStatus(CommonConstants.EntityStatus.DELETED);
-		accessToken.getRefreshToken().setStatus(CommonConstants.EntityStatus.DELETED);
-		accessTokenRepo.save(accessToken);
-		User user = userService.findActiveUserById(accessToken.getUserId());
+		accessTokenRepo.inactiveAccessToken(refreshToken.getAccessTokenId());
+		User user = userService.findActiveUserById(refreshToken.getUserId());
 		setAuthenticationByRefreshToken(user, jwtToken);
 		return createToken(true);
 	}

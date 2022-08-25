@@ -138,8 +138,14 @@ CREATE TABLE IF NOT EXISTS
 CREATE TABLE IF NOT EXISTS
     refresh_tokens (
                        id VARCHAR(255) NOT NULL PRIMARY KEY,
-                       access_token_id VARCHAR(255) NOT NULL,
-                       expired_at DATETIME(6) NULL,
+                       access_token_id VARCHAR (
+    255
+                                               ) NOT NULL,
+    user_id BIGINT NOT NULL,
+    expired_at DATETIME
+(
+    6
+) NULL,
                        STATUS INT(1) NOT NULL,
                        CONSTRAINT fk_refresh_tokens__access_tokens FOREIGN KEY (access_token_id) REFERENCES access_tokens (id)
 );

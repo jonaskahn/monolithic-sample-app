@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 
 import io.github.tuyendev.mbs.common.CommonConstants.EntityName;
 import io.github.tuyendev.mbs.common.entity.ManualPersistable;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -16,14 +15,15 @@ import org.springframework.data.relational.core.mapping.Table;
 @Getter
 @Setter
 @ToString
-@Builder
 @Table(value = EntityName.REFRESH_TOKEN)
 public class RefreshToken extends ManualPersistable<String> {
 
 	@Id
 	protected String id;
 
-	protected String accessTokenId;
+	private String accessTokenId;
+
+	private Long userId;
 
 	@Transient
 	private String token;
@@ -33,15 +33,99 @@ public class RefreshToken extends ManualPersistable<String> {
 	private Integer status;
 
 	public RefreshToken() {
-		this.newEntity = Boolean.TRUE;
 	}
 
-	public RefreshToken(String id, String accessTokenId, String token, LocalDateTime expiredAt, Integer status) {
+	public RefreshToken(String id, String accessTokenId, Long userId, String token, LocalDateTime expiredAt, Integer status) {
 		this.id = id;
 		this.accessTokenId = accessTokenId;
+		this.userId = userId;
 		this.token = token;
 		this.expiredAt = expiredAt;
 		this.status = status;
-		this.newEntity = Boolean.TRUE;
+	}
+
+	public RefreshToken(String id, String accessTokenId, Long userId, String token, LocalDateTime expiredAt, Integer status, Boolean newEntity) {
+		this.id = id;
+		this.accessTokenId = accessTokenId;
+		this.userId = userId;
+		this.token = token;
+		this.expiredAt = expiredAt;
+		this.status = status;
+		this.newEntity = newEntity;
+	}
+
+	public static RefreshTokenBuilder builder() {
+		return new RefreshTokenBuilder();
+	}
+
+	public static class RefreshTokenBuilder {
+		private String id;
+
+		private String accessTokenId;
+
+		private Long userId;
+
+		private String token;
+
+		private LocalDateTime expiredAt;
+
+		private Integer status;
+
+		private Boolean newEntity;
+
+		RefreshTokenBuilder() {
+		}
+
+		public RefreshTokenBuilder id(final String id) {
+			this.id = id;
+			return this;
+		}
+
+		public RefreshTokenBuilder accessTokenId(final String accessTokenId) {
+			this.accessTokenId = accessTokenId;
+			return this;
+		}
+
+		public RefreshTokenBuilder userId(final Long userId) {
+			this.userId = userId;
+			return this;
+		}
+
+		public RefreshTokenBuilder token(final String token) {
+			this.token = token;
+			return this;
+		}
+
+		public RefreshTokenBuilder expiredAt(final LocalDateTime expiredAt) {
+			this.expiredAt = expiredAt;
+			return this;
+		}
+
+		public RefreshTokenBuilder status(final Integer status) {
+			this.status = status;
+			return this;
+		}
+
+		public RefreshTokenBuilder newEntity() {
+			this.newEntity = Boolean.TRUE;
+			return this;
+		}
+
+		public RefreshToken build() {
+			return new RefreshToken(this.id, this.accessTokenId, this.userId, this.token, this.expiredAt, this.status, this.newEntity);
+		}
+
+		@Override
+		public String toString() {
+			return "RefreshTokenBuilder{" +
+					"id='" + id + '\'' +
+					", accessTokenId='" + accessTokenId + '\'' +
+					", userId=" + userId +
+					", token='" + token + '\'' +
+					", expiredAt=" + expiredAt +
+					", status=" + status +
+					", newEntity=" + newEntity +
+					'}';
+		}
 	}
 }

@@ -2,27 +2,35 @@ package io.github.tuyendev.mbs.common.service.user;
 
 import java.util.Set;
 
+import io.github.tuyendev.mbs.common.CommonConstants;
+import io.github.tuyendev.mbs.common.entity.rdb.AccessToken;
 import io.github.tuyendev.mbs.common.entity.rdb.Role;
 import io.github.tuyendev.mbs.common.entity.rdb.User;
+import io.github.tuyendev.mbs.common.repository.rdb.AccessTokenRepository;
 import io.github.tuyendev.mbs.common.repository.rdb.UserRepository;
 import io.github.tuyendev.mbs.common.security.DomainUserDetails;
 import io.github.tuyendev.mbs.common.security.SecurityUserInfoProvider;
 import io.github.tuyendev.mbs.common.service.role.RoleService;
+import io.github.tuyendev.mbs.common.utils.AppContextUtils;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.validator.internal.constraintvalidators.bv.EmailValidator;
 
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import static io.github.tuyendev.mbs.common.message.Translator.eval;
 
-@Service
 @RequiredArgsConstructor
+@Service
+@Transactional(rollbackFor = Exception.class)
 public class UserServiceImpl implements UserService, SecurityUserInfoProvider {
 
 	private final UserRepository userRepo;
 
 	private final RoleService roleService;
+
+	private final AccessTokenRepository accessTokenRepo;
 
 	@Override
 	public DomainUserDetails getUserInfoByPrincipal(String principal) {
@@ -56,5 +64,16 @@ public class UserServiceImpl implements UserService, SecurityUserInfoProvider {
 				.orElseThrow(() -> new UsernameNotFoundException(eval("app.user.exception.not-found")));
 		fulfillUserInfo(user);
 		return user;
+	}
+
+	@Override
+	public void revokeMe() {
+		Long userId = AppContextUtils.getCurrentLoginUserId();
+		Set<AccessToken> accessTokens = accessTokenRepo.findAllActiveByUserId(userId);
+		accessTokens.forEach(accessToken -> {
+			accessToken.setStatus(CommonConstants.EntityStatus.INACTIVE);
+			accessToken.getRefreshToken().setStatus(CommonConstants.EntityStatus.INACTIVE);
+		});
+		accessTokenRepo.saveAll(accessTokens);
 	}
 }

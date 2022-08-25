@@ -5,7 +5,6 @@ import java.util.Objects;
 
 import io.github.tuyendev.mbs.common.CommonConstants.EntityName;
 import io.github.tuyendev.mbs.common.entity.ManualPersistable;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -19,7 +18,6 @@ import org.springframework.data.relational.core.mapping.Table;
 @Setter
 @ToString
 @Table(value = EntityName.ACCESS_TOKEN)
-@Builder
 public class AccessToken extends ManualPersistable<String> {
 
 	@Id
@@ -38,7 +36,6 @@ public class AccessToken extends ManualPersistable<String> {
 	private RefreshToken refreshToken;
 
 	public AccessToken() {
-		this.newEntity = Boolean.TRUE;
 	}
 
 	public AccessToken(String id, Long userId, String token, Integer status, LocalDateTime expiredAt, RefreshToken refreshToken) {
@@ -48,7 +45,16 @@ public class AccessToken extends ManualPersistable<String> {
 		this.status = status;
 		this.expiredAt = expiredAt;
 		this.refreshToken = refreshToken;
-		this.newEntity = Boolean.TRUE;
+	}
+
+	public AccessToken(String id, Long userId, String token, Integer status, LocalDateTime expiredAt, RefreshToken refreshToken, Boolean newEntity) {
+		this.id = id;
+		this.userId = userId;
+		this.token = token;
+		this.status = status;
+		this.expiredAt = expiredAt;
+		this.refreshToken = refreshToken;
+		this.newEntity = newEntity;
 	}
 
 	@Override
@@ -63,5 +69,80 @@ public class AccessToken extends ManualPersistable<String> {
 	@Override
 	public int hashCode() {
 		return Objects.hash(id, userId, token, status, expiredAt);
+	}
+
+	public static AccessTokenBuilder builder() {
+		return new AccessTokenBuilder();
+	}
+
+	public static class AccessTokenBuilder {
+		private String id;
+
+		private Long userId;
+
+		private String token;
+
+		private Integer status;
+
+		private LocalDateTime expiredAt;
+
+		private RefreshToken refreshToken;
+
+		private Boolean newEntity;
+
+		AccessTokenBuilder() {
+		}
+
+		public AccessTokenBuilder id(final String id) {
+			this.id = id;
+			return this;
+		}
+
+		public AccessTokenBuilder userId(final Long userId) {
+			this.userId = userId;
+			return this;
+		}
+
+		public AccessTokenBuilder token(final String token) {
+			this.token = token;
+			return this;
+		}
+
+		public AccessTokenBuilder status(final Integer status) {
+			this.status = status;
+			return this;
+		}
+
+		public AccessTokenBuilder expiredAt(final LocalDateTime expiredAt) {
+			this.expiredAt = expiredAt;
+			return this;
+		}
+
+		public AccessTokenBuilder refreshToken(final RefreshToken refreshToken) {
+			this.refreshToken = refreshToken;
+			return this;
+		}
+
+		public AccessTokenBuilder newEntity() {
+			this.newEntity = Boolean.TRUE;
+			return this;
+		}
+
+		public AccessToken build() {
+			return new AccessToken(this.id, this.userId, this.token, this.status, this.expiredAt, this.refreshToken, this.newEntity);
+		}
+
+		@Override
+		public String toString() {
+			return "AccessTokenBuilder{" +
+					"id='" + id + '\'' +
+					", userId=" + userId +
+					", token='" + token + '\'' +
+					", status=" + status +
+					", expiredAt=" + expiredAt +
+					", refreshToken=" + refreshToken +
+					", newEntity=" + newEntity +
+					'}';
+		}
 	}
 }
