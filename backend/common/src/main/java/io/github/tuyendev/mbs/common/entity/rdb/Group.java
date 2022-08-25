@@ -23,10 +23,6 @@ public class Group extends AbstractJdbcEntity<Long> {
 
 	private String name;
 
-	private String domain;
-
-	private String email;
-
 	private String description;
 
 	private String status;
@@ -34,10 +30,11 @@ public class Group extends AbstractJdbcEntity<Long> {
 	@MappedCollection(idColumn = "group_id")
 	private Set<GroupUserRef> userRefs;
 
-	public Group(String name, String domain, String email, String description, String status, Set<GroupUserRef> userRefs) {
+	public Group() {
+	}
+
+	public Group(String name, String description, String status, Set<GroupUserRef> userRefs) {
 		this.name = name;
-		this.domain = domain;
-		this.email = email;
 		this.description = description;
 		this.status = status;
 		this.userRefs = Objects.requireNonNullElse(userRefs, new HashSet<>());

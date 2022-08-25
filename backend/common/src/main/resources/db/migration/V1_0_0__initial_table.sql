@@ -6,8 +6,6 @@ CREATE TABLE IF NOT EXISTS
     last_modified_by VARCHAR(255) NULL,
     last_modified_date DATETIME(6) NULL,
     description VARCHAR(500) NULL,
-    domain VARCHAR(100) NULL,
-    email VARCHAR(80) NULL,
     NAME VARCHAR(100) NULL,
     STATUS INT(1) NOT NULL
     );
