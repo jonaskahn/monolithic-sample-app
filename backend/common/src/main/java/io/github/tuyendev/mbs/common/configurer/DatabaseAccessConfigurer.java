@@ -1,12 +1,8 @@
 package io.github.tuyendev.mbs.common.configurer;
 
-import java.util.Objects;
-import java.util.Optional;
-
 import io.github.tuyendev.mbs.common.CommonConstants;
 import io.github.tuyendev.mbs.common.entity.ManualPersistable;
 import io.github.tuyendev.mbs.common.utils.AppContextUtils;
-
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
@@ -22,6 +18,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.util.Objects;
+import java.util.Optional;
+
 @Configuration
 @EntityScan(value = {"io.github.tuyendev.mbs.*.entity.rdb", "io.github.tuyendev.mbs.*.entity.mongodb"})
 @EnableJdbcRepositories(value = {"io.github.tuyendev.mbs.*.repository.rdb"})
@@ -29,42 +28,42 @@ import org.springframework.security.core.context.SecurityContextHolder;
 @EnableMongoRepositories({"io.github.tuyendev.mbs.*.repository.mongodb"})
 @EnableMongoAuditing(auditorAwareRef = "auditorProvider")
 class DatabaseAccessConfigurer {
-	@Bean
-	public AuditorAware<Long> auditorProvider() {
-		return new DomainAuditorAware();
-	}
+    @Bean
+    public AuditorAware<Long> auditorProvider() {
+        return new DomainAuditorAware();
+    }
 
-	@Bean
-	ApplicationListener<AfterSaveEvent<Object>> beforeSaveManualPersistable() {
-		return event -> {
-			Object e = event.getEntity();
-			if (e instanceof ManualPersistable) {
-				((ManualPersistable<?>) e).setNewEntity(Boolean.FALSE);
-			}
-		};
-	}
+    @Bean
+    ApplicationListener<AfterSaveEvent<Object>> beforeSaveManualPersistable() {
+        return event -> {
+            Object e = event.getEntity();
+            if (e instanceof ManualPersistable) {
+                ((ManualPersistable<?>) e).setNewEntity(Boolean.FALSE);
+            }
+        };
+    }
 
-	@Bean
-	ApplicationListener<AfterConvertEvent<Object>> afterLoadManualPersistable() {
-		return event -> {
-			Object e = event.getEntity();
-			if (e instanceof ManualPersistable) {
-				((ManualPersistable<?>) e).setNewEntity(Boolean.FALSE);
-			}
-		};
-	}
+    @Bean
+    ApplicationListener<AfterConvertEvent<Object>> afterLoadManualPersistable() {
+        return event -> {
+            Object e = event.getEntity();
+            if (e instanceof ManualPersistable) {
+                ((ManualPersistable<?>) e).setNewEntity(Boolean.FALSE);
+            }
+        };
+    }
 
 
-	static class DomainAuditorAware implements AuditorAware<Long> {
-		@Override
-		public Optional<Long> getCurrentAuditor() {
-			Optional<Authentication> authentication = Optional.ofNullable(SecurityContextHolder.getContext())
-					.map(SecurityContext::getAuthentication);
-			if (authentication.isPresent() && Objects.equals("anonymousUser", authentication.get().getPrincipal())) {
-				return Optional.of(CommonConstants.User.ANONYMOUS_ID);
-			}
-			return Optional.of(AppContextUtils.getCurrentLoginUserId());
-		}
-	}
+    static class DomainAuditorAware implements AuditorAware<Long> {
+        @Override
+        public Optional<Long> getCurrentAuditor() {
+            Optional<Authentication> authentication = Optional.ofNullable(SecurityContextHolder.getContext())
+                    .map(SecurityContext::getAuthentication);
+            if (authentication.isPresent() && Objects.equals("anonymousUser", authentication.get().getPrincipal())) {
+                return Optional.of(CommonConstants.User.ANONYMOUS_ID);
+            }
+            return Optional.of(AppContextUtils.getCurrentLoginUserId());
+        }
+    }
 
 }

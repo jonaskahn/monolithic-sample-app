@@ -6,13 +6,12 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 public class RetryOnRejectedExecution implements RejectedExecutionHandler {
 
-	@Override
-	public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
-		try {
-			executor.getQueue().put(r);
-		}
-		catch (InterruptedException e) {
-			throw new RejectedExecutionException("Unexpected InterruptedException while retry add task to queue...", e);
-		}
-	}
+    @Override
+    public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
+        try {
+            executor.getQueue().put(r);
+        } catch (InterruptedException e) {
+            throw new RejectedExecutionException("Unexpected InterruptedException while retry add task to queue...", e);
+        }
+    }
 }

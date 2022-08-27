@@ -182,7 +182,7 @@ sequenceDiagram
             }
 
             private JwtSecurityAdapter (***)securityConfigurerAdapter()  {
-                return new ($$$)JwtSecurityAdapter(tokenProvider, new DefaultAuthenticationEntryPoint(resolver));
+                return new ($$$)JwtSecurityAdapter(jwtTokenProvider, new DefaultAuthenticationEntryPoint(resolver));
             }
         }
 
@@ -191,7 +191,7 @@ sequenceDiagram
             ....
             @Override
             public void configure(HttpSecurity http) {
-                http.addFilterBefore(new (@@@)JwtTokenAuthenticationFilter(tokenProvider, authenticationEntryPoint), UsernamePasswordAuthenticationFilter.class);
+                http.addFilterBefore(new (@@@)JwtTokenAuthenticationFilter(jwtTokenProvider, authenticationEntryPoint), UsernamePasswordAuthenticationFilter.class);
             }
         }
 
@@ -208,9 +208,9 @@ sequenceDiagram
             private void doFilterInternal(ServletRequest request, ServletResponse response, FilterChain chain) throws ServletException, IOException {
                 HttpServletRequest httpServletRequest = (HttpServletRequest) request;
                 String jwt = resolveToken(httpServletRequest);
-                if (StringUtils.hasText(jwt) && tokenProvider.isSelfIssuer(jwt)) {
+                if (StringUtils.hasText(jwt) && jwtTokenProvider.isSelfIssuer(jwt)) {
                     try {
-                        this.tokenProvider.authorizeToken(jwt);
+                        this.jwtTokenProvider.authorizeToken(jwt);
                         chain.doFilter(new HiddenTokenRequestWrapper((HttpServletRequest) request), response);
                     }
                     catch (AuthenticationException e) {

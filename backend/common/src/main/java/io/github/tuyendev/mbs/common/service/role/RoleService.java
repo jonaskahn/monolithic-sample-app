@@ -1,14 +1,12 @@
 package io.github.tuyendev.mbs.common.service.role;
 
-import java.util.Set;
-
 import io.github.tuyendev.mbs.common.entity.rdb.Role;
+
+import java.util.Set;
 
 public interface RoleService {
 
-	Role findActiveByName(String name);
+    Set<Role> findAllActiveByIds(Set<Long> ids);
 
-	Set<Role> findAllActiveByIds(Set<Long> ids);
-
-	Role findAdminRole();
+    Role findAdminRole();
 }

@@ -1,23 +1,14 @@
 package io.github.tuyendev.mbs.common.security.jwt;
 
-import org.springframework.security.authentication.AbstractAuthenticationToken;
-import org.springframework.security.oauth2.jwt.Jwt;
-
 public interface JwtTokenProvider {
 
-	JwtAccessToken generateToken(final String username, final String password, final boolean rememberMe);
+    JwtAccessToken generateToken(final String username, final String password, final boolean rememberMe);
 
-	JwtAccessToken refreshToken(final String jwtToken);
+    JwtAccessToken renewToken(final String jwtToken);
 
-	void authorizeToken(String jwtToken);
+    void authorizeToken(String jwtToken);
 
-	boolean isSelfIssuer(String jwtToken);
+    boolean isSelfIssuer(String jwtToken);
 
-	/**
-	 * Convert Jwt token to @UsernameAndPasswordAuthenticationToken
-	 *
-	 * @param jwt
-	 * @return
-	 */
-	AbstractAuthenticationToken authorizeToken(Jwt jwt);
+    void revokeMe();
 }
