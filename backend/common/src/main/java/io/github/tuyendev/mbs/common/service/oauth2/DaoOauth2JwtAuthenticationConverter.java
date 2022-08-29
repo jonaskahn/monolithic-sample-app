@@ -21,7 +21,7 @@ import java.util.Set;
 import java.util.UUID;
 
 @Service
-public class DefaultOauth2JwtAuthenticationConverter implements Oauth2JwtAuthenticationConverter {
+public class DaoOauth2JwtAuthenticationConverter implements Oauth2JwtAuthenticationConverter {
 
     private final UserDetailsChecker postCheckUserStatus = new AccountStatusUserDetailsChecker();
 
@@ -33,8 +33,8 @@ public class DefaultOauth2JwtAuthenticationConverter implements Oauth2JwtAuthent
 
     private final PasswordEncoder passwordEncoder;
 
-    public DefaultOauth2JwtAuthenticationConverter(UserDetailsService userDetailsService, UserRepository userRepo,
-                                                   RoleRepository roleRepo, PasswordEncoder passwordEncoder) {
+    public DaoOauth2JwtAuthenticationConverter(UserDetailsService userDetailsService, UserRepository userRepo,
+                                               RoleRepository roleRepo, PasswordEncoder passwordEncoder) {
         this.userDetailsService = userDetailsService;
         this.userRepo = userRepo;
         this.roleRepo = roleRepo;

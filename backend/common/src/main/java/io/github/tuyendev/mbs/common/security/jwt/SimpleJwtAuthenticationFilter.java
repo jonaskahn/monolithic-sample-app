@@ -19,7 +19,7 @@ import java.util.Enumeration;
 import java.util.Objects;
 
 @Slf4j
-public class JwtTokenAuthenticationFilter extends GenericFilterBean {
+public class SimpleJwtAuthenticationFilter extends GenericFilterBean {
 
     private static final String AUTHORIZATION_HEADER = "Authorization";
 
@@ -29,7 +29,7 @@ public class JwtTokenAuthenticationFilter extends GenericFilterBean {
 
     private final AuthenticationEntryPoint authenticationEntryPoint;
 
-    public JwtTokenAuthenticationFilter(JwtTokenProvider jwtTokenProvider, AuthenticationEntryPoint authenticationEntryPoint) {
+    public SimpleJwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider, AuthenticationEntryPoint authenticationEntryPoint) {
         this.jwtTokenProvider = jwtTokenProvider;
         this.authenticationEntryPoint = authenticationEntryPoint;
     }

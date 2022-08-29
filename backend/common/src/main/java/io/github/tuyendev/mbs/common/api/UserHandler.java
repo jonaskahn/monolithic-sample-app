@@ -16,10 +16,4 @@ public class UserHandler {
     public Response getUserInfo() {
         return Response.ok();
     }
-
-    @GetRequest(path = "/revoke", desc = "Logout me from all sessions or devices")
-    public Response revokeMe() {
-        jwtTokenProvider.revokeMe();
-        return Response.ok();
-    }
 }

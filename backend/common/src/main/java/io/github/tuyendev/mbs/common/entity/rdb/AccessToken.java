@@ -6,7 +6,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.MappedCollection;
 import org.springframework.data.relational.core.mapping.Table;
 
@@ -24,9 +23,6 @@ public class AccessToken extends ManualPersistable<String> {
 
     private Long userId;
 
-    @Transient
-    private String token;
-
     private Integer status;
 
     private LocalDateTime expiredAt;
@@ -37,22 +33,11 @@ public class AccessToken extends ManualPersistable<String> {
     public AccessToken() {
     }
 
-    public AccessToken(String id, Long userId, String token, Integer status, LocalDateTime expiredAt, RefreshToken refreshToken) {
+    public AccessToken(String id, Long userId, Integer status, LocalDateTime expiredAt, Boolean newEntity) {
         this.id = id;
         this.userId = userId;
-        this.token = token;
         this.status = status;
         this.expiredAt = expiredAt;
-        this.refreshToken = refreshToken;
-    }
-
-    public AccessToken(String id, Long userId, String token, Integer status, LocalDateTime expiredAt, RefreshToken refreshToken, Boolean newEntity) {
-        this.id = id;
-        this.userId = userId;
-        this.token = token;
-        this.status = status;
-        this.expiredAt = expiredAt;
-        this.refreshToken = refreshToken;
         this.newEntity = newEntity;
     }
 
@@ -64,14 +49,13 @@ public class AccessToken extends ManualPersistable<String> {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
         AccessToken that = (AccessToken) o;
-        return Objects.equals(id, that.id) && Objects.equals(userId, that.userId) && Objects.equals(token, that.token) && Objects.equals(status, that.status) && Objects.equals(expiredAt, that.expiredAt) && Objects.equals(refreshToken, that.refreshToken);
+        return Objects.equals(id, that.id) && Objects.equals(userId, that.userId) && Objects.equals(status, that.status) && Objects.equals(expiredAt, that.expiredAt);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, userId, token, status, expiredAt);
+        return Objects.hash(id, userId, status, expiredAt);
     }
 
     public static class AccessTokenBuilder {
@@ -79,13 +63,9 @@ public class AccessToken extends ManualPersistable<String> {
 
         private Long userId;
 
-        private String token;
-
         private Integer status;
 
         private LocalDateTime expiredAt;
-
-        private RefreshToken refreshToken;
 
         private Boolean newEntity;
 
@@ -102,10 +82,6 @@ public class AccessToken extends ManualPersistable<String> {
             return this;
         }
 
-        public AccessTokenBuilder token(final String token) {
-            this.token = token;
-            return this;
-        }
 
         public AccessTokenBuilder status(final Integer status) {
             this.status = status;
@@ -117,18 +93,13 @@ public class AccessToken extends ManualPersistable<String> {
             return this;
         }
 
-        public AccessTokenBuilder refreshToken(final RefreshToken refreshToken) {
-            this.refreshToken = refreshToken;
-            return this;
-        }
-
         public AccessTokenBuilder newEntity() {
             this.newEntity = Boolean.TRUE;
             return this;
         }
 
         public AccessToken build() {
-            return new AccessToken(this.id, this.userId, this.token, this.status, this.expiredAt, this.refreshToken, this.newEntity);
+            return new AccessToken(this.id, this.userId, this.status, this.expiredAt, this.newEntity);
         }
 
         @Override
@@ -136,10 +107,8 @@ public class AccessToken extends ManualPersistable<String> {
             return "AccessTokenBuilder{" +
                     "id='" + id + '\'' +
                     ", userId=" + userId +
-                    ", token='" + token + '\'' +
                     ", status=" + status +
                     ", expiredAt=" + expiredAt +
-                    ", refreshToken=" + refreshToken +
                     ", newEntity=" + newEntity +
                     '}';
         }

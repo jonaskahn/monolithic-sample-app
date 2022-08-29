@@ -1,6 +1,5 @@
 package io.github.tuyendev.mbs.common.security.jwt;
 
-import io.github.tuyendev.mbs.common.security.DefaultAuthenticationEntryPoint;
 import org.springframework.security.config.annotation.SecurityConfigurerAdapter;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.DefaultSecurityFilterChain;
@@ -10,15 +9,15 @@ public class JwtSecurityAdapter extends SecurityConfigurerAdapter<DefaultSecurit
 
     private final JwtTokenProvider jwtTokenProvider;
 
-    private final DefaultAuthenticationEntryPoint authenticationEntryPoint;
+    private final RestAuthenticationEntryPoint authenticationEntryPoint;
 
-    public JwtSecurityAdapter(JwtTokenProvider jwtTokenProvider, DefaultAuthenticationEntryPoint authenticationEntryPoint) {
+    public JwtSecurityAdapter(JwtTokenProvider jwtTokenProvider, RestAuthenticationEntryPoint authenticationEntryPoint) {
         this.jwtTokenProvider = jwtTokenProvider;
         this.authenticationEntryPoint = authenticationEntryPoint;
     }
 
     @Override
     public void configure(HttpSecurity http) {
-        http.addFilterBefore(new JwtTokenAuthenticationFilter(jwtTokenProvider, authenticationEntryPoint), UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(new SimpleJwtAuthenticationFilter(jwtTokenProvider, authenticationEntryPoint), UsernamePasswordAuthenticationFilter.class);
     }
 }

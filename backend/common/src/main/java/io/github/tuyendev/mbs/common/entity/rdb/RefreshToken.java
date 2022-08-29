@@ -6,7 +6,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.LocalDateTime;
@@ -24,9 +23,6 @@ public class RefreshToken extends ManualPersistable<String> {
 
     private Long userId;
 
-    @Transient
-    private String token;
-
     private LocalDateTime expiredAt;
 
     private Integer status;
@@ -34,20 +30,10 @@ public class RefreshToken extends ManualPersistable<String> {
     public RefreshToken() {
     }
 
-    public RefreshToken(String id, String accessTokenId, Long userId, String token, LocalDateTime expiredAt, Integer status) {
+    public RefreshToken(String id, String accessTokenId, Long userId, LocalDateTime expiredAt, Integer status, Boolean newEntity) {
         this.id = id;
         this.accessTokenId = accessTokenId;
         this.userId = userId;
-        this.token = token;
-        this.expiredAt = expiredAt;
-        this.status = status;
-    }
-
-    public RefreshToken(String id, String accessTokenId, Long userId, String token, LocalDateTime expiredAt, Integer status, Boolean newEntity) {
-        this.id = id;
-        this.accessTokenId = accessTokenId;
-        this.userId = userId;
-        this.token = token;
         this.expiredAt = expiredAt;
         this.status = status;
         this.newEntity = newEntity;
@@ -63,8 +49,6 @@ public class RefreshToken extends ManualPersistable<String> {
         private String accessTokenId;
 
         private Long userId;
-
-        private String token;
 
         private LocalDateTime expiredAt;
 
@@ -90,11 +74,6 @@ public class RefreshToken extends ManualPersistable<String> {
             return this;
         }
 
-        public RefreshTokenBuilder token(final String token) {
-            this.token = token;
-            return this;
-        }
-
         public RefreshTokenBuilder expiredAt(final LocalDateTime expiredAt) {
             this.expiredAt = expiredAt;
             return this;
@@ -111,7 +90,7 @@ public class RefreshToken extends ManualPersistable<String> {
         }
 
         public RefreshToken build() {
-            return new RefreshToken(this.id, this.accessTokenId, this.userId, this.token, this.expiredAt, this.status, this.newEntity);
+            return new RefreshToken(this.id, this.accessTokenId, this.userId, this.expiredAt, this.status, this.newEntity);
         }
 
         @Override
@@ -120,7 +99,6 @@ public class RefreshToken extends ManualPersistable<String> {
                     "id='" + id + '\'' +
                     ", accessTokenId='" + accessTokenId + '\'' +
                     ", userId=" + userId +
-                    ", token='" + token + '\'' +
                     ", expiredAt=" + expiredAt +
                     ", status=" + status +
                     ", newEntity=" + newEntity +

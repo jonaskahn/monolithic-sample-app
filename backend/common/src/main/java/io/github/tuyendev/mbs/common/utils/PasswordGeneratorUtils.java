@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
  * @see <a href="https://mkyong.com/java/java-password-generator-example/>Ref source</a>
  */
 public abstract class PasswordGeneratorUtils {
-    private static final String CHAR_LOWERCASE = "abcdefghijklmnopqrstuvwxyz";
+	private static final String CHAR_LOWERCASE = "abcdefghijklmnopqrstuvwxyz";
 
     private static final String CHAR_UPPERCASE = CHAR_LOWERCASE.toUpperCase();
 

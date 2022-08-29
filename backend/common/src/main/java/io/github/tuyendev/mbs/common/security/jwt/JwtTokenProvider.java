@@ -2,13 +2,11 @@ package io.github.tuyendev.mbs.common.security.jwt;
 
 public interface JwtTokenProvider {
 
-    JwtAccessToken generateToken(final String username, final String password, final boolean rememberMe);
+	JwtAccessToken generateToken(final String username, final String password, final boolean rememberMe);
 
-    JwtAccessToken renewToken(final String jwtToken);
+	JwtAccessToken renewToken(final String jwtToken);
 
-    void authorizeToken(String jwtToken);
+	void authorizeToken(String jwtToken);
 
-    boolean isSelfIssuer(String jwtToken);
-
-    void revokeMe();
+	boolean isSelfIssuer(String jwtToken);
 }

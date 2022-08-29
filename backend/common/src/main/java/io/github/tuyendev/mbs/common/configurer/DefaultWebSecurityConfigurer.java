@@ -2,9 +2,9 @@ package io.github.tuyendev.mbs.common.configurer;
 
 
 import io.github.tuyendev.mbs.common.CommonConstants;
-import io.github.tuyendev.mbs.common.security.DefaultAuthenticationEntryPoint;
 import io.github.tuyendev.mbs.common.security.jwt.JwtSecurityAdapter;
 import io.github.tuyendev.mbs.common.security.jwt.JwtTokenProvider;
+import io.github.tuyendev.mbs.common.security.jwt.RestAuthenticationEntryPoint;
 import io.github.tuyendev.mbs.common.security.oauth2.Oauth2JwtAuthenticationConverter;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -67,13 +67,13 @@ class DefaultWebSecurityConfigurer {
         http.oauth2ResourceServer(oauth2 ->
                 oauth2.jwt(jwtConfigurer -> jwtConfigurer.jwtAuthenticationConverter(oauth2JwtAuthenticationConverter)));
         http.exceptionHandling()
-                .authenticationEntryPoint(new DefaultAuthenticationEntryPoint(resolver));
+                .authenticationEntryPoint(new RestAuthenticationEntryPoint(resolver));
         return http.build();
         // @formatter:on
     }
 
     private JwtSecurityAdapter securityConfigurerAdapter() {
-        return new JwtSecurityAdapter(jwtTokenProvider, new DefaultAuthenticationEntryPoint(resolver));
+        return new JwtSecurityAdapter(jwtTokenProvider, new RestAuthenticationEntryPoint(resolver));
     }
 
     @Bean

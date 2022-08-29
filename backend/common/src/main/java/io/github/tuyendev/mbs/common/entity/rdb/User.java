@@ -55,14 +55,19 @@ public class User extends AbstractJdbcEntity<Long> implements SecuredUser {
     private Integer enabled;
 
     private Integer locked;
+
     @Transient
     private Set<Role> roles = new HashSet<>();
+
     @Transient
     private Set<Group> groups = new HashSet<>();
+
     @MappedCollection(idColumn = "user_id")
     private Set<UserRoleRef> roleRefs = new HashSet<>();
+
     @MappedCollection(idColumn = "user_id")
     private Set<UserGroupRef> groupRefs = new HashSet<>();
+
     @Transient
     private Set<String> authorities = new HashSet<>();
 

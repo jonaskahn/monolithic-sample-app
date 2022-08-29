@@ -7,7 +7,7 @@ import java.util.Set;
 
 public interface SecuredUser extends Serializable {
 
-    Long getId();
+	Long getId();
 
     String getUsername();
 
