@@ -5,32 +5,27 @@ import io.github.tuyendev.mbs.common.entity.rdb.AccessToken;
 import io.github.tuyendev.mbs.common.entity.rdb.RefreshToken;
 import io.github.tuyendev.mbs.common.repository.rdb.AccessTokenRepository;
 import io.github.tuyendev.mbs.common.repository.rdb.RefreshTokenRepository;
-import io.github.tuyendev.mbs.common.security.jwt.JwtTokenProvider;
-import io.github.tuyendev.mbs.common.service.user.UserService;
+import io.github.tuyendev.mbs.common.security.jwt.JwtTokenStore;
 import io.github.tuyendev.mbs.common.utils.DateUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 
 import java.util.Date;
 
 @Slf4j
-public class DaoJwtTokenProvider extends AbstractJwtTokenProvider implements JwtTokenProvider {
-
+public class DaoJwtTokenStore implements JwtTokenStore {
 
     private final AccessTokenRepository accessTokenRepo;
 
     private final RefreshTokenRepository refreshTokenRepo;
 
-
-    public DaoJwtTokenProvider(AuthenticationManagerBuilder authenticationManagerBuilder, UserService userService,
-                               AccessTokenRepository accessTokenRepo, RefreshTokenRepository refreshTokenRepo) {
-        super(authenticationManagerBuilder, userService);
+    public DaoJwtTokenStore(AccessTokenRepository accessTokenRepo, RefreshTokenRepository refreshTokenRepo) {
         this.accessTokenRepo = accessTokenRepo;
         this.refreshTokenRepo = refreshTokenRepo;
     }
 
+
     @Override
-    protected void saveAccessToken(String id, Long userId, Date expiration) {
+    public void saveAccessToken(String id, Long userId, Date expiration) {
         AccessToken accessToken = AccessToken.builder()
                 .newEntity()
                 .id(id)
@@ -42,7 +37,7 @@ public class DaoJwtTokenProvider extends AbstractJwtTokenProvider implements Jwt
     }
 
     @Override
-    protected void saveRefreshToken(String id, String accessTokenId, Long userId, Date expiration) {
+    public void saveRefreshToken(String id, String accessTokenId, Long userId, Date expiration) {
         RefreshToken refreshToken = RefreshToken.builder()
                 .newEntity()
                 .id(id)
@@ -55,24 +50,24 @@ public class DaoJwtTokenProvider extends AbstractJwtTokenProvider implements Jwt
     }
 
     @Override
-    protected Long getUserIdByRefreshTokenId(String refreshTokenId) {
+    public Long getUserIdByRefreshTokenId(String refreshTokenId) {
         return refreshTokenRepo.findActiveRefreshTokenBy(refreshTokenId)
                 .map(RefreshToken::getUserId)
                 .orElseThrow(RevokedJwtTokenException::new);
     }
 
     @Override
-    protected void inactiveAccessTokenById(String id) {
+    public void inactiveAccessTokenById(String id) {
         accessTokenRepo.deactivateAccessTokenById(id);
     }
 
     @Override
-    protected void inactiveRefreshTokenById(String id) {
+    public void inactiveRefreshTokenById(String id) {
         refreshTokenRepo.deactivateRefreshTokenById(id);
     }
 
     @Override
-    protected boolean isAccessTokenExisted(String accessTokenId) {
+    public boolean isAccessTokenExisted(String accessTokenId) {
         return accessTokenRepo.existsActiveAccessTokenById(accessTokenId);
     }
 

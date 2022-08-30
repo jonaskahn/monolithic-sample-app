@@ -1,13 +1,14 @@
-package io.github.tuyendev.mbs.common.service.token;
+package io.github.tuyendev.mbs.common.security.jwt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.tuyendev.mbs.common.CommonConstants;
-import io.github.tuyendev.mbs.common.entity.rdb.User;
+import io.github.tuyendev.mbs.common.security.DomainUserDetailsService;
 import io.github.tuyendev.mbs.common.security.SecuredUser;
 import io.github.tuyendev.mbs.common.security.SecuredUserDetails;
-import io.github.tuyendev.mbs.common.security.jwt.JwtAccessToken;
-import io.github.tuyendev.mbs.common.security.jwt.JwtTokenProvider;
-import io.github.tuyendev.mbs.common.service.user.UserService;
+import io.github.tuyendev.mbs.common.service.token.InvalidAudienceTokenException;
+import io.github.tuyendev.mbs.common.service.token.InvalidJwtTokenException;
+import io.github.tuyendev.mbs.common.service.token.RevokedJwtTokenException;
+import io.github.tuyendev.mbs.common.service.token.UnknownIssuerTokenException;
 import io.github.tuyendev.mbs.common.utils.AppContextUtils;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
@@ -23,6 +24,8 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsChecker;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
@@ -30,13 +33,16 @@ import java.security.Key;
 import java.util.*;
 
 @Slf4j
-public abstract class AbstractJwtTokenProvider implements JwtTokenProvider {
+@Component
+public class DefaultJwtTokenProvider implements JwtTokenProvider {
 
 	private static final ObjectMapper JACKSON_MAPPER = new ObjectMapper();
 
 	protected final AuthenticationManagerBuilder authenticationManagerBuilder;
 
-	protected final UserService userService;
+	protected final DomainUserDetailsService userDetailsService;
+
+	protected final JwtTokenStore tokenStore;
 
 	private final UserDetailsChecker postCheckUserStatus = new AccountStatusUserDetailsChecker();
 
@@ -59,9 +65,10 @@ public abstract class AbstractJwtTokenProvider implements JwtTokenProvider {
 
 	private Key secretKey;
 
-	protected AbstractJwtTokenProvider(AuthenticationManagerBuilder authenticationManagerBuilder, UserService userService) {
+	public DefaultJwtTokenProvider(AuthenticationManagerBuilder authenticationManagerBuilder, DomainUserDetailsService userDetailsService, JwtTokenStore tokenStore) {
 		this.authenticationManagerBuilder = authenticationManagerBuilder;
-		this.userService = userService;
+		this.userDetailsService = userDetailsService;
+		this.tokenStore = tokenStore;
 	}
 
 
@@ -72,9 +79,19 @@ public abstract class AbstractJwtTokenProvider implements JwtTokenProvider {
 		this.jwtParser = Jwts.parserBuilder().setSigningKey(secretKey).build();
 	}
 
+	private static Claims getClaims(final JwtParser jwtParser, final String jwt) {
+		try {
+			return jwtParser.parseClaimsJws(jwt).getBody();
+		} catch (ExpiredJwtException | MalformedJwtException | UnsupportedJwtException | SignatureException |
+				 PrematureJwtException | IllegalArgumentException e) {
+			log.trace("Invalid JWT jwt", e);
+			throw new InvalidJwtTokenException();
+		}
+	}
+
 	@Override
 	@Transactional(rollbackFor = Exception.class)
-	public JwtAccessToken generateToken(String username, String password, boolean rememberMe) {
+	public JwtAccessToken generateToken(final String username, final String password, final boolean rememberMe) {
 		Authentication authenticationToken = UsernamePasswordAuthenticationToken.unauthenticated(username, password);
 		Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
 		SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -89,13 +106,13 @@ public abstract class AbstractJwtTokenProvider implements JwtTokenProvider {
 		final String accessTokenId = UUID.randomUUID().toString();
 		final Date expirationAccessToken = getExpirationDate(issuedAt, accessTokenExpirationInMinutes, rememberMe);
 		final String accessToken = createAccessToken(accessTokenId, currentUser, issuedAt, expirationAccessToken);
-		saveAccessToken(accessTokenId, currentUser.getId(), expirationAccessToken);
+		tokenStore.saveAccessToken(accessTokenId, currentUser.getId(), expirationAccessToken);
 
 		final String refreshTokenId = UUID.randomUUID().toString();
 		final Date expirationRefreshToken = getExpirationDate(issuedAt, refreshTokenExpirationInMinutes, rememberMe);
 		final String refreshToken = createRefreshToken(accessTokenId, refreshTokenId, issuedAt, expirationRefreshToken);
 
-		saveRefreshToken(refreshTokenId, accessTokenId, currentUser.getId(), expirationRefreshToken);
+		tokenStore.saveRefreshToken(refreshTokenId, accessTokenId, currentUser.getId(), expirationRefreshToken);
 		return JwtAccessToken.builder()
 				.type("Bearer")
 				.accessToken(accessToken)
@@ -105,11 +122,11 @@ public abstract class AbstractJwtTokenProvider implements JwtTokenProvider {
 				.build();
 	}
 
-	private Date getExpirationDate(Date issuedAt, long defaultExpiration, boolean rememberMe) {
+	private Date getExpirationDate(final Date issuedAt, final long defaultExpiration, final boolean rememberMe) {
 		return new Date(issuedAt.getTime() + (rememberMe ? (defaultExpiration + rememberMeExpirationInMinutes) : defaultExpiration) * 1000 * 60);
 	}
 
-	private String createAccessToken(final String accessTokenId, final SecuredUser user, Date issuedAt, Date expiration) {
+	private String createAccessToken(final String accessTokenId, final SecuredUser user, final Date issuedAt, final Date expiration) {
 		return Jwts.builder()
 				.setIssuer(issuer)
 				.setId(accessTokenId)
@@ -123,9 +140,7 @@ public abstract class AbstractJwtTokenProvider implements JwtTokenProvider {
 				.compact();
 	}
 
-	protected abstract void saveAccessToken(String id, Long userId, Date expiration);
-
-	private String createRefreshToken(String accessTokenId, String id, Date issuedAt, Date expiration) {
+	private String createRefreshToken(final String accessTokenId, final String id, final Date issuedAt, final Date expiration) {
 		return Jwts.builder()
 				.setIssuer(issuer)
 				.setId(id)
@@ -138,80 +153,62 @@ public abstract class AbstractJwtTokenProvider implements JwtTokenProvider {
 				.compact();
 	}
 
-	protected abstract void saveRefreshToken(String id, String accessTokenId, Long userId, Date expiration);
-
-
 	@Override
 	@Transactional(rollbackFor = Exception.class)
-	public JwtAccessToken renewToken(String jwtToken) {
-		Claims claims = getClaims(jwtToken);
+	public JwtAccessToken renewToken(final String jwtToken) {
+		Claims claims = getClaims(jwtParser, jwtToken);
 		if (!Objects.equals(claims.getIssuer(), issuer)) {
 			throw new UnknownIssuerTokenException();
 		}
 		if (!Objects.equals(claims.getAudience(), CommonConstants.TokenAudience.REFRESH_TOKEN)) {
 			throw new InvalidAudienceTokenException();
 		}
-		final Long userId = getUserIdByRefreshTokenId(claims.getId());
-		inactiveAccessTokenById(claims.getSubject());
-		inactiveRefreshTokenById(claims.getId());
-		User user = userService.findActiveUserById(userId);
-		setAuthenticationAfterSuccess(user, jwtToken);
+		final Long userId = tokenStore.getUserIdByRefreshTokenId(claims.getId());
+		tokenStore.inactiveAccessTokenById(claims.getSubject());
+		tokenStore.inactiveRefreshTokenById(claims.getId());
+		setAuthenticationAfterSuccess(userId);
 		return createToken(isPreviousRefreshTokenRememberMe(claims));
 	}
 
-	private Claims getClaims(String jwt) {
-		try {
-			return jwtParser.parseClaimsJws(jwt).getBody();
-		} catch (ExpiredJwtException | MalformedJwtException | UnsupportedJwtException | SignatureException |
-				 PrematureJwtException | IllegalArgumentException e) {
-			log.trace("Invalid JWT jwt", e);
-			throw new InvalidJwtTokenException();
-		}
-	}
-
-	protected abstract Long getUserIdByRefreshTokenId(String refreshTokenId);
-
-	protected abstract void inactiveAccessTokenById(String id);
-
-	protected abstract void inactiveRefreshTokenById(String id);
-
-	private boolean isPreviousRefreshTokenRememberMe(Claims claims) {
+	private boolean isPreviousRefreshTokenRememberMe(final Claims claims) {
 		Long realExpiration = Math.abs(claims.getExpiration().getTime() - claims.getIssuedAt().getTime());
 		return realExpiration.equals((refreshTokenExpirationInMinutes + rememberMeExpirationInMinutes) * 1000 * 60);
 	}
 
 	@Override
-	public void authorizeToken(String jwtToken) {
-		Claims claims = getClaims(jwtToken);
+	public void authorizeToken(final String jwtToken) {
+		Claims claims = getClaims(jwtParser, jwtToken);
 		if (!Objects.equals(claims.getAudience(), CommonConstants.TokenAudience.ACCESS_TOKEN)) {
 			throw new InvalidAudienceTokenException();
 		}
-		if (!isAccessTokenExisted(claims.getId())) {
+		if (!tokenStore.isAccessTokenExisted(claims.getId())) {
 			throw new RevokedJwtTokenException();
 		}
-		User user = userService.findActiveUserById(Long.valueOf(claims.getSubject()));
-		setAuthenticationAfterSuccess(user, jwtToken);
+		setAuthenticationAfterSuccess(claims.getSubject());
 	}
 
-	protected abstract boolean isAccessTokenExisted(String accessTokenId);
-
-	protected void setAuthenticationAfterSuccess(User user, String jwtToken) {
-		UserDetails userDetails = buildPrincipalForRefreshTokenFromUser(user, jwtToken);
+	private void setAuthenticationAfterSuccess(final Object userRef) {
+		UserDetails userDetails = buildPrincipalForRefreshTokenFromUser(userRef);
 		Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 		SecurityContext context = SecurityContextHolder.createEmptyContext();
 		context.setAuthentication(authentication);
 		SecurityContextHolder.setContext(context);
 	}
 
-	protected UserDetails buildPrincipalForRefreshTokenFromUser(final User user, final String jwt) {
-		SecuredUserDetails userDetails = new SecuredUserDetails(user, jwt);
+	private UserDetails buildPrincipalForRefreshTokenFromUser(final Object userRef) {
+		SecuredUserDetails userDetails;
+		if (userRef instanceof Long) {
+			userDetails = userDetailsService.loadUserByUserId((Long) userRef);
+		} else if (userRef instanceof String) {
+			userDetails = userDetailsService.loadUserByPreferredUsername((String) userRef);
+		} else throw new UsernameNotFoundException("app.user.exception.not-found");
 		postCheckUserStatus.check(userDetails);
 		return userDetails;
 	}
 
 
 	@Override
-	public boolean isSelfIssuer(String jwtToken) {
+	public boolean isSelfIssuer(final String jwtToken) {
 		try {
 			Base64.Decoder decoder = Base64.getUrlDecoder();
 			var payload = decoder.decode(jwtToken.split("\\.")[1]);

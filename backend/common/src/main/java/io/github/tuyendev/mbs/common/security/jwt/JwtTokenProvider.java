@@ -6,7 +6,7 @@ public interface JwtTokenProvider {
 
 	JwtAccessToken renewToken(final String jwtToken);
 
-	void authorizeToken(String jwtToken);
+	void authorizeToken(final String jwtToken);
 
-	boolean isSelfIssuer(String jwtToken);
+	boolean isSelfIssuer(final String jwtToken);
 }

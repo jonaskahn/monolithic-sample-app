@@ -23,7 +23,7 @@ public class UserServiceImpl implements UserService {
     private final RoleService roleService;
 
     @Override
-    public User findUserByUsername(String username) {
+    public User findUserByUsername(final String username) {
         User user = userRepo.findUserByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException(eval("app.user.exception.not-found")));
         fulfillUserInfo(user);
@@ -37,15 +37,24 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User findUserByEmail(String email) {
+    public User findUserByEmail(final String email) {
         User user = userRepo.findUserByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException(eval("app.user.exception.not-found")));
         fulfillUserInfo(user);
         return user;
     }
 
-    public User findActiveUserById(Long userId) {
+    @Override
+    public User findActiveUserById(final Long userId) {
         User user = userRepo.findUserById(userId)
+                .orElseThrow(() -> new UsernameNotFoundException(eval("app.user.exception.not-found")));
+        fulfillUserInfo(user);
+        return user;
+    }
+
+    @Override
+    public User findActiveUserByPreferredUsername(String preferredUsername) {
+        User user = userRepo.findUserByPreferredUsername(preferredUsername)
                 .orElseThrow(() -> new UsernameNotFoundException(eval("app.user.exception.not-found")));
         fulfillUserInfo(user);
         return user;
