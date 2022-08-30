@@ -235,9 +235,31 @@ sequenceDiagram
         }
 
 > Note: Cause JWT Filter and Oauth2 Filter both consume Bearer Token, if a token is valid with JWT Filter flow, the Bearer Token will be removed (hidden) before run next filter
-> .That why we create [HiddenTokenRequestWrapper](common/src/main/java/io/github/tuyendev/mbs/common/security/jwt/JwtTokenAuthenticationFilter.java#L72) to hide token data
+> .That why we I created [HiddenTokenRequestWrapper](common/src/main/java/io/github/tuyendev/mbs/common/security/jwt/JwtTokenAuthenticationFilter.java#L72) to hide token data
 
         chain.doFilter(new HiddenTokenRequestWrapper((HttpServletRequest) request), response);
+**Token Store**
+
+ I provied 2 ways to store token in Database or MongoDB (as Default), just change the configuration and see:
+ 
+        @Configuration
+        public class JwtTokenProviderConfigurer {
+            
+            (1) Using MongoDB - as default
+            @Bean
+            @ConditionalOnMissingBean
+            JwtTokenStore jwtTokenStore(MongoAccessTokenRepository accessTokenRepo, MongoRefreshTokenRepository refreshTokenRepo) {
+                return new MongoJwtTokenStore(accessTokenRepo, refreshTokenRepo);
+            }
+
+            (2) Using Database
+            @Bean
+            JwtTokenStore jwtTokenStore(AccessTokenRepository accessTokenRepo, RefreshTokenRepository refreshTokenRepo) {
+                return new DaoJwtTokenStore(accessTokenRepo, refreshTokenRepo);
+            }
+        }
+
+
 ## Authentication as  Oauth2 resource server
 ```mermaid {code_block=true}
 sequenceDiagram
