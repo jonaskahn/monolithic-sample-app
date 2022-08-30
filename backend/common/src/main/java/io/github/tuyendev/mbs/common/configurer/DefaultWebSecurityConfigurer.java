@@ -64,8 +64,10 @@ class DefaultWebSecurityConfigurer {
                 .logout().disable()
                 .httpBasic().disable()
                 .apply(securityConfigurerAdapter());
-        http.oauth2ResourceServer(oauth2 ->
-                oauth2.jwt(jwtConfigurer -> jwtConfigurer.jwtAuthenticationConverter(oauth2JwtAuthenticationConverter)));
+        http.oauth2ResourceServer(oauth2 -> {
+            oauth2.jwt(jwtConfigurer -> jwtConfigurer.jwtAuthenticationConverter(oauth2JwtAuthenticationConverter));
+            oauth2.authenticationEntryPoint(new RestAuthenticationEntryPoint(resolver));
+        });
         http.exceptionHandling()
                 .authenticationEntryPoint(new RestAuthenticationEntryPoint(resolver));
         return http.build();

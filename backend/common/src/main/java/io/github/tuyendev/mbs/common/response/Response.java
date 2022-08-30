@@ -11,6 +11,7 @@ import org.springframework.http.converter.HttpMessageConversionException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpMediaTypeNotAcceptableException;
@@ -128,6 +129,9 @@ public class Response<T> implements Serializable {
     }
 
     public static String getAuthenticationMessage(AuthenticationException e) {
+        if (e instanceof OAuth2AuthenticationException) {
+            return "app.common.exception.authentication.oauth2";
+        }
         if (e instanceof InsufficientAuthenticationException) {
             return "app.common.exception.authentication.insufficient";
         }
