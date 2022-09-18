@@ -21,7 +21,6 @@ import java.util.Set;
 @Getter
 @Setter
 @Table(value = EntityName.USER)
-@Builder
 public class User extends AbstractJdbcEntity<Long> implements SecuredUser {
 
     private String username;
@@ -74,11 +73,13 @@ public class User extends AbstractJdbcEntity<Long> implements SecuredUser {
     public User() {
     }
 
-    public User(String username, String preferredUsername, String password, String email,
+    @Builder
+    public User(Long id, String username, String preferredUsername, String password, String email,
                 Integer emailVerified, String familyName, String middleName, String givenName,
                 String name, String unsigned_name, String phoneNumber, Integer phoneNumberVerified,
                 Integer gender, LocalDate birthdate, Integer enabled, Integer locked, Set<Role> roles,
                 Set<Group> groups, Set<UserRoleRef> roleRefs, Set<UserGroupRef> groupRefs, Set<String> authorities) {
+        this.id = id;
         this.username = username;
         this.preferredUsername = preferredUsername;
         this.password = password;
