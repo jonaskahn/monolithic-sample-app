@@ -82,7 +82,6 @@ Some aspects of this project
 
         // Error response sample
         {
-            "status": 401,
             "metadata": {
                     "timestamp": "2022-08-23T17:27:21.318259+07:00",
                     "traceId": "a600e902126de187",
