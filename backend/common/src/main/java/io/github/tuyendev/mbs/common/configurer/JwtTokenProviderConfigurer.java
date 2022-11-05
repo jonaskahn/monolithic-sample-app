@@ -11,9 +11,9 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class JwtTokenProviderConfigurer {
 
-	@Bean
-	@ConditionalOnMissingBean
-	JwtTokenStore jwtTokenStore(MongoAccessTokenRepository accessTokenRepo, MongoRefreshTokenRepository refreshTokenRepo) {
-		return new MongoJwtTokenStore(accessTokenRepo, refreshTokenRepo);
-	}
+    @Bean
+    @ConditionalOnMissingBean
+    JwtTokenStore jwtTokenStore(MongoAccessTokenRepository accessTokenRepo, MongoRefreshTokenRepository refreshTokenRepo) {
+        return new MongoJwtTokenStore(accessTokenRepo, refreshTokenRepo);
+    }
 }

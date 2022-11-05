@@ -34,14 +34,14 @@ public class Metadata implements Serializable {
 
     private static Tracer tracer;
 
+    static {
+        tracer = AppContextUtils.getBean(Tracer.class);
+    }
+
     private String timestamp;
-
     private String code;
-
     private String traceId;
-
     private String reportId;
-
     @JsonIgnore
     private String stackTrace;
 
@@ -89,9 +89,5 @@ public class Metadata implements Serializable {
 
     private String getSummary() {
         return "\n" + reportId + " - " + stackTrace;
-    }
-
-    static {
-        tracer = AppContextUtils.getBean(Tracer.class);
     }
 }

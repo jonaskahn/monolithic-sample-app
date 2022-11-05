@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.7.3</version>
+		<version>2.7.5</version>
 		<relativePath/>
 	</parent>
 	<groupId>io.github.tuyendev.mbs</groupId>
@@ -17,13 +17,16 @@
 	<properties>
 		<java.version>11</java.version>
 		<springdoc.version>1.6.10</springdoc.version>
-		<spring-cloud.version>2021.0.3</spring-cloud.version>
+		<spring-cloud.version>2021.0.4</spring-cloud.version>
 		<streamex.version>0.8.1</streamex.version>
 		<problem-spring-web.version>0.27.0</problem-spring-web.version>
-		<mapstruct.version>1.5.2.Final</mapstruct.version>
+		<mapstruct.version>1.5.3.Final</mapstruct.version>
 		<therapi.version>0.15.0</therapi.version>
-		<mapstruct-facade.version>1.6.0</mapstruct-facade.version>
+		<mapstruct-facade.version>1.6.1</mapstruct-facade.version>
 		<jjwt.version>0.11.5</jjwt.version>
+		<springdoc.version>1.6.12</springdoc.version>
+		<streamex.version>0.8.1</streamex.version>
+		<bouncycastle.version>1.72</bouncycastle.version>
 	</properties>
 	<modules>
 		<module>common</module>

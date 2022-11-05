@@ -14,16 +14,6 @@
 	<properties>
 		<spring-boot.repackage.skip>true</spring-boot.repackage.skip>
 		<java.version>11</java.version>
-		<spring-cloud.version>2021.0.3</spring-cloud.version>
-		<springdoc.version>1.6.10</springdoc.version>
-		<spring-cloud.version>2021.0.3</spring-cloud.version>
-		<streamex.version>0.8.1</streamex.version>
-		<problem-spring-web.version>0.27.0</problem-spring-web.version>
-		<mapstruct.version>1.5.2.Final</mapstruct.version>
-		<therapi.version>0.15.0</therapi.version>
-		<mapstruct-facade.version>1.6.0</mapstruct-facade.version>
-		<jjwt.version>0.11.5</jjwt.version>
-		<bouncycastle.version>1.70</bouncycastle.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -143,7 +133,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.bouncycastle</groupId>
-			<artifactId>bcprov-jdk15on</artifactId>
+			<artifactId>bcprov-jdk15to18</artifactId>
 			<version>${bouncycastle.version}</version>
 		</dependency>
 

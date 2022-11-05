@@ -6,7 +6,6 @@ import io.github.tuyendev.mbs.common.exception.LogicException;
 import lombok.*;
 import org.springframework.beans.PropertyAccessException;
 import org.springframework.dao.DataAccessException;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageConversionException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.*;
@@ -38,91 +37,87 @@ public class Response<T> implements Serializable {
 
     private static final long serialVersionUID = 3807699489176814824L;
 
-    private int status;
-
     private Metadata metadata;
 
     private T payload;
 
     public static Response ok() {
         return Response.builder()
-                .status(HttpStatus.OK.value())
                 .metadata(Metadata.successBlock())
                 .payload(Map.of("message", eval("app.common.message.success"))).build();
     }
 
     public static <T> Response ok(T payload) {
         return Response.builder()
-                .status(HttpStatus.OK.value())
                 .metadata(Metadata.successBlock())
                 .payload(payload).build();
     }
 
     public static Response failed(LogicException e) {
-        return Response.builder().status(HttpStatus.BAD_REQUEST.value())
+        return Response.builder()
                 .metadata(Metadata.errorBlock(e))
                 .payload(ErrorContent.build(e.getMessage()))
                 .build();
     }
 
     public static Response failed(MethodArgumentNotValidException e) {
-        return Response.builder().status(HttpStatus.BAD_REQUEST.value())
+        return Response.builder()
                 .metadata(Metadata.errorBlock(e))
                 .payload(ErrorContent.build(eval("app.common.exception.evalidation"), e))
                 .build();
     }
 
     public static Response failed(AccessDeniedException e) {
-        return Response.builder().status(HttpStatus.FORBIDDEN.value())
+        return Response.builder()
                 .metadata(Metadata.errorBlock(e))
                 .payload(ErrorContent.build("app.common.exception.forbidden-access"))
                 .build();
     }
 
     public static Response failed(HttpRequestMethodNotSupportedException e) {
-        return Response.builder().status(HttpStatus.NOT_ACCEPTABLE.value())
+        return Response.builder()
                 .metadata(Metadata.errorBlock(e))
                 .payload(ErrorContent.build("app.common.exception.unsupported-method"))
                 .build();
     }
 
     public static Response failed(HttpMediaTypeNotSupportedException e) {
-        return Response.builder().status(HttpStatus.NOT_ACCEPTABLE.value())
+        return Response.builder()
                 .metadata(Metadata.errorBlock(e))
                 .payload(ErrorContent.build("app.common.exception.unsupported-media-type"))
                 .build();
     }
 
     public static Response failed(HttpMediaTypeNotAcceptableException e) {
-        return Response.builder().status(HttpStatus.NOT_ACCEPTABLE.value())
+        return Response.builder()
                 .metadata(Metadata.errorBlock(e))
                 .payload(ErrorContent.build("app.common.exception.not-accept-media-type"))
                 .build();
     }
 
     public static Response failed(ServletException e) {
-        return Response.builder().status(HttpStatus.BAD_REQUEST.value())
+        return Response.builder()
                 .metadata(Metadata.errorBlock(e))
                 .payload(ErrorContent.build("app.common.exception.servlet"))
                 .build();
     }
 
     public static Response failed(HttpMessageConversionException e) {
-        return Response.builder().status(HttpStatus.BAD_REQUEST.value())
+        return Response.builder()
                 .metadata(Metadata.errorBlock(e))
                 .payload(ErrorContent.build("app.common.exception.message-conversion"))
                 .build();
     }
 
     public static Response failed(PropertyAccessException e) {
-        return Response.builder().status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+        return Response.builder()
                 .metadata(Metadata.errorBlock(e))
                 .payload(ErrorContent.build("app.common.exception.property-access"))
                 .build();
     }
 
     public static Response failed(AuthenticationException e) {
-        return Response.builder().status(HttpStatus.UNAUTHORIZED.value())
+        return Response.builder()
                 .metadata(Metadata.errorBlock(e))
                 .payload(ErrorContent.build(eval(getAuthenticationMessage(e)), e.getMessage()))
                 .build();
@@ -157,7 +152,7 @@ public class Response<T> implements Serializable {
     }
 
     public static Response failed(DataAccessException e) {
-        return Response.builder().status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+        return Response.builder()
                 .metadata(Metadata.errorBlock(e))
                 .payload(ErrorContent.build(eval("app.common.exception.cannot-access-data"), e.getMessage()))
                 .build();
@@ -165,21 +160,21 @@ public class Response<T> implements Serializable {
 
 
     public static Response failed(RuntimeException e) {
-        return Response.builder().status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+        return Response.builder()
                 .metadata(Metadata.errorBlock(e))
                 .payload(ErrorContent.build(eval("app.common.exception.runtime-unhandled")))
                 .build();
     }
 
     public static Response unexpected(Exception e) {
-        return Response.builder().status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+        return Response.builder()
                 .metadata(Metadata.errorBlock(e))
                 .payload(ErrorContent.build(eval("app.common.exception.unhandled")))
                 .build();
     }
 
     public static Response error(Error e) {
-        return Response.builder().status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+        return Response.builder()
                 .metadata(Metadata.errorBlock(e))
                 .payload(ErrorContent.build(eval("app.common.exception.system")))
                 .build();
