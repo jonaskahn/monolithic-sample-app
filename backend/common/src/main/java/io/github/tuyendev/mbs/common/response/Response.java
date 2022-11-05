@@ -154,7 +154,7 @@ public class Response<T> implements Serializable {
     public static Response failed(DataAccessException e) {
         return Response.builder()
                 .metadata(Metadata.errorBlock(e))
-                .payload(ErrorContent.build(eval("app.common.exception.cannot-access-data"), e.getMessage()))
+                .payload(ErrorContent.build(eval("app.common.exception.cannot-access-data")))
                 .build();
     }
 

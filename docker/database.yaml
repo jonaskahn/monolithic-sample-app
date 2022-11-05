@@ -22,20 +22,14 @@ services:
     volumes:
       - mariadb:/bitnami/mariadb
   mongodb:
-    image: bitnami/mongodb:latest
+    image: mongo:latest
     container_name: mongodb
     hostname: mongodb
     restart: unless-stopped
     ports:
       - 27017:27017
-    environment:
-      - MONGODB_ROOT_USER=root
-      - MONGODB_ROOT_PASSWORD=development
-      - MONGODB_USERNAME=app
-      - MONGODB_PASSWORD=development
-      - MONGODB_DATABASE=app
     volumes:
-      - mongodb:/bitnami
+      - mongodb:/data/db
   redis:
     image: bitnami/redis:latest
     container_name: redis
