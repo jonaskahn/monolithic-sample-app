@@ -9,7 +9,7 @@ Some aspects of this project
 - [x] Handle Authentication flow with self JWT and Oauth2 resource server.
 - [x] Handle Role -> Privilege Strategy
 - [x] Refined ReST response with understood JSON structure.
-- [ ] Metrics integration
+- [x] Metrics integration
 
 ## Structure
 
