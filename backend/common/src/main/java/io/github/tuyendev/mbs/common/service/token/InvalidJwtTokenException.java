@@ -6,7 +6,7 @@ import static io.github.tuyendev.mbs.common.message.Translator.eval;
 
 public class InvalidJwtTokenException extends AuthenticationException {
 
-    public InvalidJwtTokenException() {
-        super(eval("app.auth.exception.token-not-valid"));
-    }
+	public InvalidJwtTokenException() {
+		super(eval("app.auth.exception.token-not-valid"));
+	}
 }

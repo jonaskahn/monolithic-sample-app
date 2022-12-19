@@ -1,6 +1,9 @@
 package io.github.tuyendev.mbs.common.exception;
 
+import javax.servlet.ServletException;
+
 import io.github.tuyendev.mbs.common.response.Response;
+
 import org.springframework.beans.ConversionNotSupportedException;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.dao.DataAccessException;
@@ -29,142 +32,140 @@ import org.springframework.web.multipart.support.MissingServletRequestPartExcept
 import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
-import javax.servlet.ServletException;
-
 @ControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
-    @Override
-    protected ResponseEntity<Object> handleHttpRequestMethodNotSupported(HttpRequestMethodNotSupportedException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
-        return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(Response.failed(ex));
-    }
+	@Override
+	protected ResponseEntity<Object> handleHttpRequestMethodNotSupported(HttpRequestMethodNotSupportedException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
+		return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(Response.failed(ex));
+	}
 
-    @Override
-    protected ResponseEntity<Object> handleHttpMediaTypeNotSupported(HttpMediaTypeNotSupportedException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
-        return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).body(Response.failed(ex));
-    }
+	@Override
+	protected ResponseEntity<Object> handleHttpMediaTypeNotSupported(HttpMediaTypeNotSupportedException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
+		return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).body(Response.failed(ex));
+	}
 
-    @Override
-    protected ResponseEntity<Object> handleHttpMediaTypeNotAcceptable(HttpMediaTypeNotAcceptableException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
-        return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).body(Response.failed(ex));
-    }
+	@Override
+	protected ResponseEntity<Object> handleHttpMediaTypeNotAcceptable(HttpMediaTypeNotAcceptableException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
+		return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).body(Response.failed(ex));
+	}
 
-    @Override
-    protected ResponseEntity<Object> handleMissingPathVariable(MissingPathVariableException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
-        return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).body(Response.failed(ex));
-    }
+	@Override
+	protected ResponseEntity<Object> handleMissingPathVariable(MissingPathVariableException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
+		return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).body(Response.failed(ex));
+	}
 
-    @Override
-    protected ResponseEntity<Object> handleMissingServletRequestParameter(MissingServletRequestParameterException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Response.failed(ex));
-    }
+	@Override
+	protected ResponseEntity<Object> handleMissingServletRequestParameter(MissingServletRequestParameterException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Response.failed(ex));
+	}
 
-    @Override
-    protected ResponseEntity<Object> handleServletRequestBindingException(ServletRequestBindingException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Response.failed(ex));
-    }
+	@Override
+	protected ResponseEntity<Object> handleServletRequestBindingException(ServletRequestBindingException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Response.failed(ex));
+	}
 
-    @Override
-    protected ResponseEntity<Object> handleConversionNotSupported(ConversionNotSupportedException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Response.failed(ex));
-    }
+	@Override
+	protected ResponseEntity<Object> handleConversionNotSupported(ConversionNotSupportedException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
+		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Response.failed(ex));
+	}
 
-    @Override
-    protected ResponseEntity<Object> handleTypeMismatch(TypeMismatchException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Response.failed(ex));
-    }
+	@Override
+	protected ResponseEntity<Object> handleTypeMismatch(TypeMismatchException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
+		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Response.failed(ex));
+	}
 
-    @Override
-    protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Response.failed(ex));
-    }
+	@Override
+	protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Response.failed(ex));
+	}
 
-    @Override
-    protected ResponseEntity<Object> handleHttpMessageNotWritable(HttpMessageNotWritableException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Response.failed(ex));
-    }
+	@Override
+	protected ResponseEntity<Object> handleHttpMessageNotWritable(HttpMessageNotWritableException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Response.failed(ex));
+	}
 
-    @Override
-    protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
-        return ResponseEntity.badRequest().body(Response.failed(ex));
-    }
+	@Override
+	protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
+		return ResponseEntity.badRequest().body(Response.failed(ex));
+	}
 
-    @Override
-    protected ResponseEntity<Object> handleMissingServletRequestPart(MissingServletRequestPartException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
-        return ResponseEntity.badRequest().body(Response.failed(ex));
-    }
+	@Override
+	protected ResponseEntity<Object> handleMissingServletRequestPart(MissingServletRequestPartException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
+		return ResponseEntity.badRequest().body(Response.failed(ex));
+	}
 
-    @Override
-    protected ResponseEntity<Object> handleBindException(BindException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
-        return ResponseEntity.badRequest().body(Response.unexpected(ex));
-    }
+	@Override
+	protected ResponseEntity<Object> handleBindException(BindException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
+		return ResponseEntity.badRequest().body(Response.unexpected(ex));
+	}
 
-    @Override
-    protected ResponseEntity<Object> handleNoHandlerFoundException(NoHandlerFoundException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
-        return super.handleNoHandlerFoundException(ex, headers, status, request);
-    }
+	@Override
+	protected ResponseEntity<Object> handleNoHandlerFoundException(NoHandlerFoundException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
+		return super.handleNoHandlerFoundException(ex, headers, status, request);
+	}
 
-    @Override
-    protected ResponseEntity<Object> handleAsyncRequestTimeoutException(AsyncRequestTimeoutException ex, HttpHeaders headers, HttpStatus status, WebRequest webRequest) {
-        return super.handleAsyncRequestTimeoutException(ex, headers, status, webRequest);
-    }
+	@Override
+	protected ResponseEntity<Object> handleAsyncRequestTimeoutException(AsyncRequestTimeoutException ex, HttpHeaders headers, HttpStatus status, WebRequest webRequest) {
+		return super.handleAsyncRequestTimeoutException(ex, headers, status, webRequest);
+	}
 
-    @Override
-    protected ResponseEntity<Object> handleExceptionInternal(Exception ex, Object body, HttpHeaders headers, HttpStatus status, WebRequest request) {
-        return super.handleExceptionInternal(ex, body, headers, status, request);
-    }
+	@Override
+	protected ResponseEntity<Object> handleExceptionInternal(Exception ex, Object body, HttpHeaders headers, HttpStatus status, WebRequest request) {
+		return super.handleExceptionInternal(ex, body, headers, status, request);
+	}
 
-    @ExceptionHandler({OAuth2AuthenticationException.class})
-    @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    public ResponseEntity<Object> handleOAuth2AuthenticationException(OAuth2AuthenticationException ex) {
-        return ResponseEntity.internalServerError().body(Response.failed(ex));
-    }
+	@ExceptionHandler({OAuth2AuthenticationException.class})
+	@ResponseStatus(HttpStatus.UNAUTHORIZED)
+	public ResponseEntity<Object> handleOAuth2AuthenticationException(OAuth2AuthenticationException ex) {
+		return ResponseEntity.internalServerError().body(Response.failed(ex));
+	}
 
-    @ExceptionHandler({RuntimeException.class})
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ResponseEntity<Object> handleRuntimeException(RuntimeException ex) {
-        return ResponseEntity.internalServerError().body(Response.failed(ex));
-    }
+	@ExceptionHandler({RuntimeException.class})
+	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+	public ResponseEntity<Object> handleRuntimeException(RuntimeException ex) {
+		return ResponseEntity.internalServerError().body(Response.failed(ex));
+	}
 
-    @ExceptionHandler({LogicException.class})
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResponseEntity<Object> handleBusinessException(LogicException ex) {
-        return ResponseEntity.badRequest().body(Response.failed(ex));
-    }
+	@ExceptionHandler({LogicException.class})
+	@ResponseStatus(HttpStatus.BAD_REQUEST)
+	public ResponseEntity<Object> handleBusinessException(LogicException ex) {
+		return ResponseEntity.badRequest().body(Response.failed(ex));
+	}
 
-    @ExceptionHandler({AuthenticationException.class})
-    @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    public ResponseEntity<Response> handleAuthenticationException(AuthenticationException ex) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Response.failed(ex));
-    }
+	@ExceptionHandler({AuthenticationException.class})
+	@ResponseStatus(HttpStatus.UNAUTHORIZED)
+	public ResponseEntity<Response> handleAuthenticationException(AuthenticationException ex) {
+		return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Response.failed(ex));
+	}
 
-    @ExceptionHandler({DataAccessException.class})
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResponseEntity<Response> handleDataAccessException(DataAccessException ex) {
-        return ResponseEntity.badRequest().body(Response.failed(ex));
-    }
+	@ExceptionHandler({DataAccessException.class})
+	@ResponseStatus(HttpStatus.BAD_REQUEST)
+	public ResponseEntity<Response> handleDataAccessException(DataAccessException ex) {
+		return ResponseEntity.badRequest().body(Response.failed(ex));
+	}
 
-    @ExceptionHandler({AccessDeniedException.class})
-    @ResponseStatus(HttpStatus.FORBIDDEN)
-    public ResponseEntity<Response> handleAccessDeniedException(AccessDeniedException ex) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Response.failed(ex));
-    }
+	@ExceptionHandler({AccessDeniedException.class})
+	@ResponseStatus(HttpStatus.FORBIDDEN)
+	public ResponseEntity<Response> handleAccessDeniedException(AccessDeniedException ex) {
+		return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Response.failed(ex));
+	}
 
-    @ExceptionHandler({ServletException.class})
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResponseEntity<Response> handleServletException(ServletException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Response.failed(ex));
-    }
+	@ExceptionHandler({ServletException.class})
+	@ResponseStatus(HttpStatus.BAD_REQUEST)
+	public ResponseEntity<Response> handleServletException(ServletException ex) {
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Response.failed(ex));
+	}
 
-    @ExceptionHandler({Exception.class})
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ResponseEntity<Response> handleUnexpectedException(Exception ex) {
-        return ResponseEntity.internalServerError().body(Response.unexpected(ex));
-    }
+	@ExceptionHandler({Exception.class})
+	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+	public ResponseEntity<Response> handleUnexpectedException(Exception ex) {
+		return ResponseEntity.internalServerError().body(Response.unexpected(ex));
+	}
 
-    @ExceptionHandler({Error.class})
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ResponseEntity<Response> handleSystemError(Error ex) {
-        return ResponseEntity.internalServerError().body(Response.error(ex));
-    }
+	@ExceptionHandler({Error.class})
+	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+	public ResponseEntity<Response> handleSystemError(Error ex) {
+		return ResponseEntity.internalServerError().body(Response.error(ex));
+	}
 }

@@ -7,33 +7,33 @@ import java.util.Set;
 
 public interface SecuredUser extends Serializable {
 
-    Long getId();
+	Long getId();
 
-    String getUsername();
+	String getUsername();
 
-    String getPreferredUsername();
+	String getPreferredUsername();
 
-    String getPassword();
+	String getPassword();
 
-    String getEmail();
+	String getEmail();
 
-    String getFamilyName();
+	String getFamilyName();
 
-    String getMiddleName();
+	String getMiddleName();
 
-    String getGivenName();
+	String getGivenName();
 
-    String getName();
+	String getName();
 
-    String getPhoneNumber();
+	String getPhoneNumber();
 
-    Integer getGender();
+	Integer getGender();
 
-    LocalDate getBirthdate();
+	LocalDate getBirthdate();
 
-    Integer getEnabled();
+	Integer getEnabled();
 
-    Integer getLocked();
+	Integer getLocked();
 
-    Set<String> getAuthorityNames();
+	Set<String> getAuthorityNames();
 }
